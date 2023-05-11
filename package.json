@@ -1,0 +1,20 @@
+{
+  "name": "vadermap",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gabriel-dahan/vadermap.git"
+  },
+  "author": "Gabriel DAHAN",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/gabriel-dahan/vadermap/issues"
+  },
+  "homepage": "https://github.com/gabriel-dahan/vadermap#readme",
+  "devDependencies": {
+    "leaflet": "^1.9.3"
+  }
+}
