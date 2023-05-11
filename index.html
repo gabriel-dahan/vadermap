@@ -8,8 +8,48 @@
         
         <link rel="stylesheet" href="./node_modules/leaflet/dist/leaflet.css" />
         <script src="./node_modules/leaflet/dist/leaflet.js"></script>
+        <style>
+            @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@100&display=swap');
+
+            * {
+                margin: 0;
+                padding: 0;
+                font-family: 'JetBrains Mono', monospace;
+            }
+            #map { height: 100vh; }
+
+            .space-invaders {
+                z-index: 500;
+                position: absolute;
+                display: flex;
+                flex-direction: column;
+                gap: 15px;
+                background-color: #313131;
+                border-radius: 10px;
+                padding: 15px;
+                top: 15px;
+                right: 15px;
+            }
+
+            .space-invaders > ul {
+                list-style: none;
+                color: #fff;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 10px;
+            }
+        </style>
     </head>
     <body>
-        
+        <div class="space-invaders">
+            <h1 style="font-size: 14px; color: #fff;">Space Invaders</h1>
+            <ul>
+                <li>... 1</li>
+                <li>... 2</li>
+            </ul>
+        </div>
+        <div id="map"></div>
+        <script src="scripts.js"></script>
     </body>
 </html>
