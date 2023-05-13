@@ -6,17 +6,16 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>VaderMap</title>
         
-        <link rel="stylesheet" href="./node_modules/leaflet/dist/leaflet.css" />
-        <link rel="shortcut icon" href="img/invader-logo-white.png" type="image/x-icon">
-        <style>
-            
-        </style>
+        <link rel="stylesheet" href="{{ url_for('static', filename='node_modules/leaflet/dist/leaflet.css') }}" />
+        <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+        <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
+        <script src="{{ url_for('static', filename='node_modules/leaflet/dist/leaflet.js') }}"></script>
     </head>
     <body>
         <div class="space-invaders">
             <span class="title">
                 <h1 style="font-size: 14px; color: #fff;">Space Invaders</h1>
-                <img src="img/invader-logo-white.png" alt="Invader Logo">
+                <img src="{{ url_for('static', filename='img/invader-logo-white.png') }}" alt="Invader Logo">
             </span>
             <ul>
                 <li>... 1</li>

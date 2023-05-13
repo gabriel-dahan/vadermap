@@ -1,1 +1,5 @@
+.env
+.venv/
 node_modules/
+instance/
+package-lock.json

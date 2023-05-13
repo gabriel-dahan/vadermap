@@ -1,0 +1,31 @@
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@100&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    font-family: 'JetBrains Mono', monospace;
+}
+
+#map { height: 100vh; }
+
+.space-invaders {
+    z-index: 500;
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    background-color: #313131;
+    border-radius: 10px;
+    padding: 15px;
+    top: 15px;
+    right: 15px;
+}
+
+.space-invaders > ul {
+    list-style: none;
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}

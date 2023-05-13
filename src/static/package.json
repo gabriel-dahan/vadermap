@@ -1,0 +1,14 @@
+{
+  "name": "vadermap",
+  "version": "1.0.0",
+  "description": "",
+  "main": "mapping.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Gabriel DAHAN",
+  "license": "MIT",
+  "devDependencies": {
+    "leaflet": "^1.9.3"
+  }
+}

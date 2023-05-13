@@ -1,13 +1,12 @@
-import fs from 'fs';
-import L from 'leaflet';
+const IMG_PATH = 'img/';
 
 const map = L.map('map').setView([51.505, -0.09], 13);
 const pointer = L.icon({
-    iconUrl: './img/pointer.png',
+    iconUrl: IMG_PATH + 'pointer.png',
     iconSize: [100, 100]
 });
 const markerIcon = L.icon({
-    iconUrl: './img/invader-logo-white.png',
+    iconUrl: IMG_PATH + 'invader-logo-white.png',
     iconSize: [40, 40]
 });
 
