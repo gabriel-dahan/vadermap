@@ -13,6 +13,28 @@
     </head>
     <body>
         <div id="map"></div>
+        <div class="space-invaders">
+            <span class="title">
+                <h1>Space Invaders</h1>
+                <img src="{{ url_for('static', filename='img/invader-logo-white.png') }}" alt="Invader Logo">
+            </span>
+            <ul id="invaders-list"></ul>
+            <img 
+                class="expand-arrow" 
+                width="25px" 
+                height="auto" 
+                src="{{ url_for('static', filename='img/expand-arrow.png') }}" 
+                alt="Expand Arrow"
+                onclick="
+                    const invList = document.getElementById('invaders-list');
+                    if(invList.classList.contains('expanded')) {
+                        invList.classList.remove('expanded');
+                    } else {
+                        invList.classList.add('expanded');
+                    }
+                "
+            >
+        </div>
 
         <script src="mapping.js"></script>
         <script>
@@ -20,24 +42,5 @@
             vaderMap.loadData({{ data|tojson }});
             vaderMap.init();
         </script>
-
-        <div class="space-invaders">
-            <span class="title">
-                <h1 style="font-size: 14px; color: #fff;">Space Invaders</h1>
-                <img width="20px" height="auto" src="{{ url_for('static', filename='img/invader-logo-white.png') }}" alt="Invader Logo">
-            </span>
-            <ul>
-                {% for invader in data.invaders %}
-                    <li onclick="vaderMap.centerToInvader({{ invader.lat }}, {{ invader.lng }})">
-                        <details>
-                            <summary>{{ invader.date }}</summary>
-                            Lat: {{ invader.lat }} <br>
-                            Lng: {{ invader.lng }} <br>
-                            Date added: {{ invader.date }}
-                        </details>
-                    </li>
-                {% endfor %}
-            </ul>
-        </div>
     </body>
 </html>

@@ -2,8 +2,9 @@ from flask import Flask, render_template, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 
 from dotenv import dotenv_values
+import json
 
-from .data_loader import MapData
+from .data_loader import MapData, get_formated_deltatime
 
 CONF = dotenv_values('.env')
 
@@ -21,7 +22,7 @@ vmap = MapData()
 
 @__app__.route('/')
 def map():
-    return render_template('index.html', data = vmap.all())
+    return render_template('index.html', format_deltatime = get_formated_deltatime, data = vmap.all())
 
 @__app__.route('/api/map')
 def get_map():

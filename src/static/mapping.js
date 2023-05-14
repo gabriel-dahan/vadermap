@@ -50,7 +50,7 @@ class VaderAPI {
 }
 
 class VaderMap {
-    constructor(mapElementId, mapOrigin = [51.505, -0.09], mapZoom = 13) {
+    constructor(mapElementId, mapOrigin = [48.85895522569794, 2.3454093933105473], mapZoom = 13) {
         this.mapId = mapElementId;
         this.mapOrigin = mapOrigin;
         this.mapZoom = mapZoom;
@@ -88,6 +88,10 @@ class VaderMap {
             this.mapOrigin, 
             this.mapZoom
         );
+        this.map.zoomControl.remove();
+
+        this._initGeoLoc();
+        this._reloadInvadersList();
 
         if(this.data) {
             this.data.invaders.forEach(invader => {
@@ -97,7 +101,6 @@ class VaderMap {
 
         L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(this.map);
 
-        this._initGeoLoc();
 
         const mapClick = (e) => {
             let latLng = e.latlng;
@@ -107,10 +110,27 @@ class VaderMap {
         this.map.on('click', mapClick);
     }
 
+    _reloadInvadersList() {
+        const listElement = document.getElementById('invaders-list');
+        listElement.innerHTML = '';
+        this.data.invaders.forEach(invader => {
+            listElement.innerHTML += 
+                `
+                    <li onclick="vaderMap.centerToInvader(${invader.lat}, ${invader.lng})" data-lat=${invader.lat} data-lng=${invader.lng}>
+                        <details>
+                            <summary>${this.getFormatedDeltaTime(invader.date)}</summary>
+                            <p>Lat: ${invader.lat}</p>
+                            <p>Lng: ${invader.lng}</p>
+                        </details>
+                    </li>
+                `;
+        });
+    }
+
     _initGeoLoc() {
         const geolocDenied = (err) => {
             if (err.code === 1) {
-                console.log('Géolocalisation non acceptée.');
+                console.error('Géolocalisation non acceptée.');
             } else {
                 console.error(err);
             }
@@ -157,28 +177,56 @@ class VaderMap {
     addInvader(lat, lng) {
         this.addInvaderMarker(lat, lng);
         this.api.addInvader(lat, lng);
+        this.data.invaders.push({
+            lat: lat,
+            lng: lng,
+            date: new Date()
+        });
+        this._reloadInvadersList();
     }
 
     deleteInvader(marker) {
+        const latLng = marker.getLatLng();
         marker.remove();
         this.activeMarkers.splice(this.activeMarkers.indexOf(marker), 1);
         this.api.deleteInvader(marker);
+        this.data.invaders = this.data.invaders.filter(invader => {
+            return invader.lat !== latLng.lat && invader.lng !== latLng.lng;
+        });
+        this._reloadInvadersList();
     }
 
     addInvaderMarker(lat, lng) {
         let spaceInvMarker = L.marker([lat, lng], { icon: this.markerIcon }).addTo(this.map);
         let deleteBtn = document.createElement('button');
-        deleteBtn.innerHTML = 'Delete';
+        deleteBtn.innerHTML = '<strong>Supprimer</strong>';
+        deleteBtn.style.background = 'transparent';
+        deleteBtn.style.border = 'none';
+        deleteBtn.style.cursor = 'pointer';
         deleteBtn.onclick = () => { this.deleteInvader(spaceInvMarker); };
         spaceInvMarker.bindPopup(deleteBtn);
         this.activeMarkers.push(spaceInvMarker);
+    }
+
+    loadData(data) {
+        this.data = data;
+    }
+
+    getNominatimInfos(lat, lng) {
+        const nominatimUrl = 'https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=' + lat + '&lon=' + lng;
+
+        try {
+            return fetch(nominatimUrl);
+        } catch(err) {
+            console.error(err);
+        }
     }
 
     getFormatedDeltaTime(isoDateTime) {
         const date = new Date(isoDateTime);
         const now = new Date();
 
-        const deltaTimeMilli = date.getTime() - now.getTime();
+        const deltaTimeMilli = now.getTime() - date.getTime();
         // const deltaTimeSec = Math.floor(deltaTimeMilli / 1000);
         const deltaTimeMin = Math.floor(deltaTimeMilli / (1000 * 60));
         const deltaTimeHours = Math.floor(deltaTimeMilli / (1000 * 60 * 60));
@@ -193,9 +241,5 @@ class VaderMap {
         } else {
             return 'Ajouté il y a quelques secondes.'
         }
-    }
-
-    loadData(data) {
-        this.data = data;
     }
 }
