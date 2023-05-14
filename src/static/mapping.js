@@ -3,32 +3,28 @@ class VaderAPI {
         this.base = '/api/'
     }
 
-    _get(endpoint) {
-        return fetch(endpoint, {
+    async _get(endpoint) {
+        return (await fetch(endpoint, {
             method: 'GET',
-        }).then(res => res.json());
+        })).json();
     }
 
-    _post(endpoint, payload, callback = (data) => {}) {
-        fetch(endpoint, {
+    async _post(endpoint, payload) {
+        return (await fetch(endpoint, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify(payload)
-        }).then(res => res.json())
-          .then(data => callback(data))
-          .catch(error => {
-            console.error(error);
-        });
+        })).json();
     }
 
-    getMapData() {
-        return this._get(this.base + 'map');
+    async getMapData() {
+        return await this._get(this.base + 'map');
     }
 
-    addInvader(lat, lng) {
-        this._post(
+    async addInvader(lat, lng) {
+        await this._post(
             this.base + 'add-invader',
             { 
                 lat: lat, 
@@ -37,9 +33,9 @@ class VaderAPI {
         )
     }
 
-    deleteInvader(marker) {
+    async deleteInvader(marker) {
         const latLng = marker.getLatLng();
-        this._post(
+        await this._post(
             this.base + 'delete-invader',
             {
                 lat: latLng.lat,
@@ -83,7 +79,9 @@ class VaderMap {
         this.data = null;
     }
 
-    init() {
+    async init() {
+        await this.reloadData();
+
         this.map = L.map(this.mapId).setView(
             this.mapOrigin, 
             this.mapZoom
@@ -111,19 +109,19 @@ class VaderMap {
     }
 
     _reloadInvadersList() {
-        const listElement = document.getElementById('invaders-list');
-        listElement.innerHTML = '';
+        const invList = document.getElementById('invaders-list');
+        invList.innerHTML = '';
         this.data.invaders.forEach(invader => {
-            listElement.innerHTML += 
-                `
-                    <li onclick="vaderMap.centerToInvader(${invader.lat}, ${invader.lng})" data-lat=${invader.lat} data-lng=${invader.lng}>
-                        <details>
-                            <summary>${this.getFormatedDeltaTime(invader.date)}</summary>
-                            <p>Lat: ${invader.lat}</p>
-                            <p>Lng: ${invader.lng}</p>
-                        </details>
-                    </li>
-                `;
+            const listElement = document.createElement('li');
+            listElement.onclick = () => { this.centerToInvader(invader.lat, invader.lng); };
+            listElement.innerHTML = `
+                <details>
+                    <summary>${this.getFormatedDeltaTime(invader.date)}</summary>
+                    <p>Lat: ${invader.lat}</p>
+                    <p>Lng: ${invader.lng}</p>
+                </details>
+            `
+            invList.appendChild(listElement);
         });
     }
 
@@ -174,25 +172,19 @@ class VaderMap {
         }
     }
 
-    addInvader(lat, lng) {
+    async addInvader(lat, lng) {
         this.addInvaderMarker(lat, lng);
-        this.api.addInvader(lat, lng);
-        this.data.invaders.push({
-            lat: lat,
-            lng: lng,
-            date: new Date()
-        });
+        await this.api.addInvader(lat, lng);
+        await this.reloadData();
         this._reloadInvadersList();
     }
 
-    deleteInvader(marker) {
+    async deleteInvader(marker) {
         const latLng = marker.getLatLng();
         marker.remove();
         this.activeMarkers.splice(this.activeMarkers.indexOf(marker), 1);
-        this.api.deleteInvader(marker);
-        this.data.invaders = this.data.invaders.filter(invader => {
-            return invader.lat !== latLng.lat && invader.lng !== latLng.lng;
-        });
+        await this.api.deleteInvader(marker);
+        await this.reloadData();
         this._reloadInvadersList();
     }
 
@@ -208,15 +200,15 @@ class VaderMap {
         this.activeMarkers.push(spaceInvMarker);
     }
 
-    loadData(data) {
-        this.data = data;
+    async reloadData() {
+        this.data = await this.api.getMapData();
     }
 
-    getNominatimInfos(lat, lng) {
+    async getNominatimInfos(lat, lng) {
         const nominatimUrl = 'https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=' + lat + '&lon=' + lng;
 
         try {
-            return fetch(nominatimUrl);
+            return (await fetch(nominatimUrl)).json();
         } catch(err) {
             console.error(err);
         }

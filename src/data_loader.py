@@ -1,31 +1,37 @@
-import json
+from . import db
+from .models import Invader, User
+
+from typing import List, Union
 from datetime import datetime
 import math
 
 class MapData:
 
     def __init__(self) -> None:
-        with open('src/instance/data.json', 'r') as fp:
-            self.data = json.load(fp)
+        pass
     
-    def all(self) -> dict:
-        return self.data
+    def all(self) -> List[dict]:
+        return {
+            'invaders': [invader.as_json() for invader in Invader.query]
+        }
     
-    def add_invader(self, lat: float, lng: float) -> None:
-        self.data['invaders'].append({
-            'lat': lat, 
-            'lng': lng,
-            'date': datetime.now().isoformat()
-        })
-        with open('src/instance/data.json', 'w') as fp:
-            json.dump(self.data, fp, indent = 4)
+    def add_invader(self, lat: float, lng: float) -> dict:
+        new_invader = Invader(
+            lat = lat,
+            lng = lng
+        )
+        db.session.add(new_invader)
+        db.session.commit()
+        return new_invader.as_json()
 
-    def delete_invader(self, lat: float, lng: float) -> None:
-        for i, invader in enumerate(self.data['invaders']):
-            if invader['lat'] == lat and invader['lng'] == lng:
-                self.data['invaders'].pop(i)
-                with open('src/instance/data.json', 'w') as fp:
-                    json.dump(self.data, fp, indent = 4)
+    def delete_invader(self, lat: float, lng: float) -> Union[dict, None]:
+        if invader := Invader.query.filter(
+            (Invader.lat == lat) & (Invader.lng == lng)
+        ).first():
+            db.session.delete(invader)
+            db.session.commit()
+            return invader.as_json()
+        return None
 
 def get_formated_deltatime(iso_datetime: str) -> str:
     date = datetime.fromisoformat(iso_datetime)

@@ -38,9 +38,10 @@
 
         <script src="mapping.js"></script>
         <script>
-            const vaderMap = new VaderMap('map');
-            vaderMap.loadData({{ data|tojson }});
-            vaderMap.init();
+            (async () => { 
+                const vaderMap = new VaderMap('map');
+                await vaderMap.init();
+            })();
         </script>
     </body>
 </html>

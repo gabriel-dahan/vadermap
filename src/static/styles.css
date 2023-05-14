@@ -43,6 +43,7 @@
 
 .space-invaders > .expand-arrow {
     transform: rotate(134deg);
+    cursor: pointer;
 }
 
 .space-invaders > .title {

@@ -2,9 +2,6 @@ from flask import Flask, render_template, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 
 from dotenv import dotenv_values
-import json
-
-from .data_loader import MapData, get_formated_deltatime
 
 CONF = dotenv_values('.env')
 
@@ -17,6 +14,13 @@ __app__ = Flask(
 __app__.url_map.strict_slashes = False
 
 __app__.config['SECRET'] = CONF['SECRET']
+
+# DATABASE
+__app__.config['SQLALCHEMY_DATABASE_URI'] = CONF['DB_URI']
+__app__.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+db = SQLAlchemy(__app__)
+
+from .data_loader import MapData, get_formated_deltatime
 
 vmap = MapData()
 
@@ -59,3 +63,5 @@ def delete_invader():
     return jsonify({
         'message': 'Invader removed successfuly'
     })
+
+from .models import Invader, User
