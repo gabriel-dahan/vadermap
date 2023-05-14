@@ -11,6 +11,9 @@ class MapData:
         pass
     
     def all(self) -> List[dict]:
+        print({
+            'invaders': [invader.as_json() for invader in Invader.query]
+        })
         return {
             'invaders': [invader.as_json() for invader in Invader.query]
         }

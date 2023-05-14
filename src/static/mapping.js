@@ -114,6 +114,7 @@ class VaderMap {
         this.data.invaders.forEach(invader => {
             const listElement = document.createElement('li');
             listElement.onclick = () => { this.centerToInvader(invader.lat, invader.lng); };
+            console.log(invader)
             listElement.innerHTML = `
                 <details>
                     <summary>${this.getFormatedDeltaTime(invader.date)}</summary>

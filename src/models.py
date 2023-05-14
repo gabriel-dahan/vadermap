@@ -16,10 +16,10 @@ class Invader(db.Model):
     lng: float = db.Column(db.Float, nullable = False)
     date: datetime = db.Column(db.DateTime, default = datetime.now, nullable = False)
 
-    def as_json_norel(self) -> dict:
-        return self.as_json_norel().update({
+    def as_json(self) -> dict:
+        return {**self.as_json_norel(), **{
             'users': [user.as_json_norel() for user in self.users]
-        })
+        }}
 
     def as_json_norel(self) -> dict:
         return {
@@ -43,9 +43,9 @@ class User(db.Model):
     invaders = db.relationship('Invader', secondary = users_invaders, backref='users') # Many-to-Many
 
     def as_json(self):
-        return self.as_json_norel().update({
+        return {**self.as_json_norel(), **{
             'invaders': [invader.as_json_norel() for invader in self.invaders]
-        })
+        }}
     
     def as_json_norel(self):
         """ Returns the User object without relations to other tables (e.g. self.invaders). """
