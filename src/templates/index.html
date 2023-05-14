@@ -12,17 +12,32 @@
         <script src="{{ url_for('static', filename='node_modules/leaflet/dist/leaflet.js') }}"></script>
     </head>
     <body>
+        <div id="map"></div>
+
+        <script src="mapping.js"></script>
+        <script>
+            const vaderMap = new VaderMap('map');
+            vaderMap.loadData({{ data|tojson }});
+            vaderMap.init();
+        </script>
+
         <div class="space-invaders">
             <span class="title">
                 <h1 style="font-size: 14px; color: #fff;">Space Invaders</h1>
-                <img src="{{ url_for('static', filename='img/invader-logo-white.png') }}" alt="Invader Logo">
+                <img width="20px" height="auto" src="{{ url_for('static', filename='img/invader-logo-white.png') }}" alt="Invader Logo">
             </span>
             <ul>
-                <li>... 1</li>
-                <li>... 2</li>
+                {% for invader in data.invaders %}
+                    <li onclick="vaderMap.centerToInvader({{ invader.lat }}, {{ invader.lng }})">
+                        <details>
+                            <summary>{{ invader.date }}</summary>
+                            Lat: {{ invader.lat }} <br>
+                            Lng: {{ invader.lng }} <br>
+                            Date added: {{ invader.date }}
+                        </details>
+                    </li>
+                {% endfor %}
             </ul>
         </div>
-        <div id="map"></div>
-        <script type="module" src="mapping.js"></script>
     </body>
 </html>
