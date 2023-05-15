@@ -27,6 +27,16 @@ class VaderAPI {
         return await this._get(this.base + 'map');
     }
 
+    async claimInvader(lat, lng) {
+        return await this._post(
+            this.base + 'claim-invader',
+            {
+                lat: lat,
+                lng: lng
+            }
+        )
+    }
+
     async addInvader(lat, lng) {
         await this._post(
             this.base + 'add-invader',
@@ -101,11 +111,10 @@ class VaderMap {
 
         
         this._initGeoLoc();
-        this._reloadInvadersList();
 
         if(this.data) {
-            this.data.invaders.forEach(invader => {
-                this.addInvaderMarker(invader.lat, invader.lng);
+            this.data.invaders.forEach(async invader => {
+                await this.addInvaderMarker(invader.lat, invader.lng);
             });
         }
 
@@ -118,23 +127,6 @@ class VaderMap {
         }
 
         this.map.on('click', mapClick);
-    }
-
-    _reloadInvadersList() {
-        const invList = document.getElementById('invaders-list');
-        invList.innerHTML = '';
-        this.data.invaders.forEach(invader => {
-            const listElement = document.createElement('li');
-            listElement.onclick = () => { this.centerToInvader(invader.lat, invader.lng); };
-            listElement.innerHTML = `
-                <details style="display: flex; flex-direction: column; gap: 10px">
-                    <summary>${this.getFormatedDeltaTime(invader.date)}</summary>
-                    <p>Lat: ${invader.lat}</p>
-                    <p>Lng: ${invader.lng}</p>
-                </details>
-            `
-            invList.appendChild(listElement);
-        });
     }
 
     _initGeoLoc() {
@@ -186,10 +178,9 @@ class VaderMap {
     }
 
     async addInvader(lat, lng) {
-        this.addInvaderMarker(lat, lng);
         await this.api.addInvader(lat, lng);
         await this.reloadData();
-        this._reloadInvadersList();
+        await this.addInvaderMarker(lat, lng);
     }
 
     async deleteInvader(marker) {
@@ -198,7 +189,6 @@ class VaderMap {
         this.activeMarkers.splice(this.activeMarkers.indexOf(marker), 1);
         await this.api.deleteInvader(marker);
         await this.reloadData();
-        this._reloadInvadersList();
     }
 
     hasInvader(user, invader) {
@@ -214,21 +204,54 @@ class VaderMap {
         )[0];
     }
 
-    addInvaderMarker(lat, lng) {
+    async addInvaderMarker(lat, lng) {
         const invader = this.getInvaderData(lat, lng);
         let icon = this.otherInvaderIcon;
-        if(!invader || this.hasInvader(this.currentUser, invader)) {
+        const hasInvader = this.hasInvader(this.currentUser, invader);
+        if(hasInvader) {
             icon = this.invaderIcon;
         }
         let spaceInvMarker = L.marker([lat, lng], { icon: icon }).addTo(this.map);
+
+        const formatedUsers = invader.users.map(user => `<li>${user.name}</li>`).join('');
+        let invaderContainer = document.createElement('div');
+        invaderContainer.classList.add('invader-marker');
+        invaderContainer.innerHTML = `
+            <p class="invader-name">${invader.name} <span class="id">(#${invader.id})</span></p>
+            <p>Trouvé par :</p>
+            <ul>
+                ${formatedUsers}
+            </ul>
+        `;
+
         let deleteBtn = document.createElement('button');
         deleteBtn.innerHTML = '<strong>Supprimer</strong>';
         deleteBtn.style.background = 'transparent';
         deleteBtn.style.border = 'none';
         deleteBtn.style.cursor = 'pointer';
         deleteBtn.onclick = () => { this.deleteInvader(spaceInvMarker); };
-        spaceInvMarker.bindPopup(deleteBtn);
+        
+        let claimBtn = document.createElement('button');
+        claimBtn.innerHTML = hasInvader ? '<strong>Ne plus marquer</strong>' : '<strong>Marquer</strong>';
+        claimBtn.style.background = 'transparent';
+        claimBtn.style.border = 'none';
+        claimBtn.style.cursor = 'pointer';
+        claimBtn.onclick = async () => { await this.updateClaimState(lat, lng, spaceInvMarker); };
+
+        let btns = document.createElement('div');
+        btns.appendChild(deleteBtn);
+        btns.appendChild(claimBtn);
+
+        invaderContainer.appendChild(btns);
+        spaceInvMarker.bindPopup(invaderContainer);
         this.activeMarkers.push(spaceInvMarker);
+    }
+
+    async updateClaimState(lat, lng, marker) {
+        const claimed = await this.api.claimInvader(lat, lng);
+        await this.reloadData();
+        marker.remove()
+        await this.addInvaderMarker(lat, lng);
     }
 
     async reloadData() {

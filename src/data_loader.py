@@ -17,6 +17,20 @@ class MapData:
             'invaders': [invader.as_json() for invader in Invader.query]
         }
     
+    def claim_invader(self, lat: float, lng: float) -> dict:
+        if current_user.is_authenticated and (invader := Invader.query.filter(
+            (Invader.lat == lat) & (Invader.lng == lng)
+        ).first()):
+            if current_user in invader.users:
+                invader.users.remove(current_user)
+                claimed = False
+            else:
+                invader.users.append(current_user)
+                claimed = True
+            db.session.commit()
+            return claimed
+        return None
+    
     def add_invader(self, lat: float, lng: float) -> dict:
         new_invader = Invader(
             lat = lat,

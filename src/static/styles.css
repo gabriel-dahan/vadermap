@@ -1,19 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@100&display=swap');
-
-::-webkit-scrollbar {
-    width: 6px;
-    background-color: #f1f1f1;
-}
-
-/* Set the color of the scroll thumb (handle) */
-::-webkit-scrollbar-thumb {
-    background-color: #888;
-}
-
-/* On hover, set a darker color for the scroll thumb */
-    ::-webkit-scrollbar-thumb:hover {
-    background-color: #555;
-}
+@import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
 
 * {
     margin: 0;
@@ -38,12 +24,10 @@
     top: 0;
     margin: 15px;
     max-height: calc(100vh - 60px);
-    overflow-y: scroll;
 }
 
-.space-invaders > .expand-arrow {
-    transform: rotate(134deg);
-    cursor: pointer;
+.space-invaders > p {
+    color: #ffffff;
 }
 
 .space-invaders > .title {
@@ -63,37 +47,24 @@
     height: auto;
 }
 
-.space-invaders > ul {
-    display: none;
-}
-
-.space-invaders > ul.expanded {
-    list-style: none;
-    color: #fff;
+.invader-marker {
     display: flex;
     flex-direction: column;
+    gap: 5px;
     align-items: center;
-    gap: 10px;
 }
 
-.space-invaders > ul.expanded > li {
-    padding: 10px;
-    border-radius: 5px;
-    cursor: pointer;
-    background-color: #4b4b4ba2;
+.invader-marker p {
+    margin: 0 !important;
 }
 
-.space-invaders > ul.expanded > li:hover {
-    background-color: #4b4b4b;
+.invader-marker > .invader-name {
+    font-weight: 800;
 }
 
-.space-invaders > ul.expanded > li > details {
-    font-size: 14px;
-}
-
-.space-invaders > ul.expanded > li > details > p {
-    font-size: 12px;
-    margin-left: 10px;
+.invader-marker > div {
+    display: flex;
+    gap: 15px;
 }
 
 @media screen and (max-width: 630px) {

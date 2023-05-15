@@ -84,6 +84,22 @@ def logout():
 def get_map():
     return jsonify(vmap.all())
 
+@__app__.route('/api/claim-invader', methods = ['POST'])
+def claim_invader():
+    data = request.get_json()
+    lat = data.get('lat')
+    lng = data.get('lng')
+
+    if not lat or not lng:
+        return jsonify({
+            'error': 'Missing one argument.'
+        })
+    
+    vmap.claim_invader(lat, lng)
+    return jsonify({
+        'message': 'Invader claimed successfuly'
+    })
+
 @__app__.route('/api/add-invader', methods = ['POST'])
 def add_invader():
     data = request.get_json()
