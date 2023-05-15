@@ -1,3 +1,5 @@
+from flask_login import UserMixin
+
 from . import db
 
 from typing import List
@@ -32,7 +34,7 @@ class Invader(db.Model):
     def __repr__(self) -> str:
         return f'Invader(lat: {self.lat}, lng: {self.lng}, date: {self.date.isoformat()})'
 
-class User(db.Model):
+class User(db.Model, UserMixin):
     __tablename__ = 'users'
 
     id: float = db.Column(db.Integer, primary_key = True)

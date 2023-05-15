@@ -10,5 +10,8 @@
   "license": "MIT",
   "devDependencies": {
     "leaflet": "^1.9.3"
+  },
+  "dependencies": {
+    "leaflet.markercluster": "^1.5.3"
   }
 }

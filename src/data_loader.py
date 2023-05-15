@@ -1,3 +1,5 @@
+from flask_login import current_user
+
 from . import db
 from .models import Invader, User
 
@@ -11,9 +13,6 @@ class MapData:
         pass
     
     def all(self) -> List[dict]:
-        print({
-            'invaders': [invader.as_json() for invader in Invader.query]
-        })
         return {
             'invaders': [invader.as_json() for invader in Invader.query]
         }
@@ -24,6 +23,9 @@ class MapData:
             lng = lng
         )
         db.session.add(new_invader)
+        
+        current_user.invaders.append(new_invader)
+
         db.session.commit()
         return new_invader.as_json()
 

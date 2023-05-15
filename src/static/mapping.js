@@ -19,6 +19,10 @@ class VaderAPI {
         })).json();
     }
 
+    async getCurrentUser() {
+        return await this._get(this.base + 'current-user');
+    }
+
     async getMapData() {
         return await this._get(this.base + 'map');
     }
@@ -46,7 +50,7 @@ class VaderAPI {
 }
 
 class VaderMap {
-    constructor(mapElementId, mapOrigin = [48.85895522569794, 2.3454093933105473], mapZoom = 13) {
+    constructor(mapElementId, mapOrigin = [48.85895522569794, 2.3454093933105473], mapZoom = 12) {
         this.mapId = mapElementId;
         this.mapOrigin = mapOrigin;
         this.mapZoom = mapZoom;
@@ -63,7 +67,8 @@ class VaderMap {
         const IMG_PATH = 'img/';
         this.icons = {
             pointer: IMG_PATH + 'pointer.png',
-            invader: IMG_PATH + 'invader-logo-white.png'
+            invader: IMG_PATH + 'invader-logo-white.png',
+            otherInvader: IMG_PATH + 'invader-logo.png'
         }
 
         this.pointer = L.icon({
@@ -71,8 +76,13 @@ class VaderMap {
             iconSize: [100, 100]
         });
 
-        this.markerIcon = L.icon({
+        this.invaderIcon = L.icon({
             iconUrl: this.icons.invader,
+            iconSize: [40, 40]
+        });
+
+        this.otherInvaderIcon = L.icon({
+            iconUrl: this.icons.otherInvader,
             iconSize: [40, 40]
         });
 
@@ -81,6 +91,7 @@ class VaderMap {
 
     async init() {
         await this.reloadData();
+        this.currentUser = (await this.api.getCurrentUser()).current_user;
 
         this.map = L.map(this.mapId).setView(
             this.mapOrigin, 
@@ -88,6 +99,7 @@ class VaderMap {
         );
         this.map.zoomControl.remove();
 
+        
         this._initGeoLoc();
         this._reloadInvadersList();
 
@@ -114,9 +126,8 @@ class VaderMap {
         this.data.invaders.forEach(invader => {
             const listElement = document.createElement('li');
             listElement.onclick = () => { this.centerToInvader(invader.lat, invader.lng); };
-            console.log(invader)
             listElement.innerHTML = `
-                <details>
+                <details style="display: flex; flex-direction: column; gap: 10px">
                     <summary>${this.getFormatedDeltaTime(invader.date)}</summary>
                     <p>Lat: ${invader.lat}</p>
                     <p>Lng: ${invader.lng}</p>
@@ -145,6 +156,7 @@ class VaderMap {
                 this.currentPos.accCircle.remove();
             }
             this.currentPos.marker = L.marker([lat, lng], { icon: this.pointer }).addTo(this.map);
+            this.currentPos.marker.setZIndexOffset(-100);
             this.currentPos.accCircle = L.circle([lat, lng], { radius: accuracy }).addTo(this.map);
 
             if(!this.currentPos.zoomed) {
@@ -189,8 +201,26 @@ class VaderMap {
         this._reloadInvadersList();
     }
 
+    hasInvader(user, invader) {
+        if(invader.users.map(obj => obj.id).includes(user.id)) {
+            return true;
+        }
+        return false;
+    }
+
+    getInvaderData(lat, lng) {
+        return this.data.invaders.filter(invader => 
+            (invader.lat === lat && invader.lng === lng)
+        )[0];
+    }
+
     addInvaderMarker(lat, lng) {
-        let spaceInvMarker = L.marker([lat, lng], { icon: this.markerIcon }).addTo(this.map);
+        const invader = this.getInvaderData(lat, lng);
+        let icon = this.otherInvaderIcon;
+        if(!invader || this.hasInvader(this.currentUser, invader)) {
+            icon = this.invaderIcon;
+        }
+        let spaceInvMarker = L.marker([lat, lng], { icon: icon }).addTo(this.map);
         let deleteBtn = document.createElement('button');
         deleteBtn.innerHTML = '<strong>Supprimer</strong>';
         deleteBtn.style.background = 'transparent';

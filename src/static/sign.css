@@ -1,0 +1,88 @@
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@100&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+}
+
+.form p, .form label, .form legend, .form small, .form h3 {
+    font-family: 'JetBrains Mono', monospace;
+}
+
+.form > form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    align-items: center;
+}
+
+.form > form > legend {
+    margin: 0 10px;
+    text-align: center;
+}
+
+.form > form > .form-fields {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.form > form > .form-fields > .form-field {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.form > form > .form-fields > .form-field > input {
+    border-radius: 5px;
+    padding: 3px 0 3px 7px;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 800;
+    width: 400px;
+}
+
+.form > form > .form-fields > .submit {
+    display: flex;
+    justify-content: center;
+}
+
+.form > form > .form-fields > .submit > input {
+    width: 100%;
+    padding: 5px 10px;
+    border-radius: 10px;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 900;
+    transition: 0.2s;
+}
+
+.form > form > .form-fields > .form-field > .invalid > span {
+    color: #e06060;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 800;
+}
+
+.form > form > .form-fields > .submit > input:hover {
+    background-color: #00000041;
+    color: #fff;
+}
+
+@media screen and (max-width: 485px) {
+    .form > form > .form-fields > .form-field > input {
+        width: 300px;
+    }
+}

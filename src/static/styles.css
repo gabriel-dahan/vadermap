@@ -25,16 +25,16 @@
 
 .space-invaders {
     z-index: 500;
-    width: 200px;
+    width: 300px;
     position: absolute;
     display: flex;
     flex-direction: column;
     gap: 15px;
-    background-color: #313131;
+    background-color: #31313167;
     align-items: center;
     border-radius: 10px;
     padding: 15px;
-    right: calc(50% - 130px);
+    right: calc(50% - 180px);
     top: 0;
     margin: 15px;
     max-height: calc(100vh - 60px);
@@ -80,6 +80,7 @@
     padding: 10px;
     border-radius: 5px;
     cursor: pointer;
+    background-color: #4b4b4ba2;
 }
 
 .space-invaders > ul.expanded > li:hover {
@@ -88,10 +89,20 @@
 
 .space-invaders > ul.expanded > li > details {
     font-size: 14px;
-    max-width: 200px;
 }
 
 .space-invaders > ul.expanded > li > details > p {
     font-size: 12px;
     margin-left: 10px;
+}
+
+@media screen and (max-width: 630px) {
+    .space-invaders {
+        width: 100%;
+        top: 0;
+        right: 0;
+        margin: 0;
+        padding: 10px 0;
+        border-radius: 0;
+    }
 }
