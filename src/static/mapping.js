@@ -118,7 +118,9 @@ class VaderMap {
             });
         }
 
-        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(this.map);
+        L.tileLayer(
+            'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png'
+        ).addTo(this.map);
 
 
         const mapClick = (e) => {
@@ -214,6 +216,8 @@ class VaderMap {
         let spaceInvMarker = L.marker([lat, lng], { icon: icon }).addTo(this.map);
 
         const formatedUsers = invader.users.map(user => `<li>${user.name}</li>`).join('');
+        const date = new Date(invader.date);
+        date.setHours(date.getHours() + 2);
         let invaderContainer = document.createElement('div');
         invaderContainer.classList.add('invader-marker');
         invaderContainer.innerHTML = `
@@ -222,6 +226,7 @@ class VaderMap {
             <ul>
                 ${formatedUsers}
             </ul>
+            <small>${date.toLocaleString()}</small>
         `;
 
         let deleteBtn = document.createElement('button');

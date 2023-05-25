@@ -36,11 +36,45 @@ from .data_loader import MapData
 vmap = MapData()
 
 @__app__.route('/')
+def home():
+    return render_template('index.html', users = User.query.all())
+
+@__app__.route('/map')
 @login_required
 def map():
-    return render_template('index.html')
+    return render_template('map.html', invaders = Invader.query.all())
 
-from .forms import LoginForm, RegistrationForm
+@__app__.route('/profile')
+@login_required
+def my_profile():
+    return redirect(url_for('user_profile', username = current_user.name))
+
+
+@__app__.route('/user/<username>')
+def user_profile(username: str):
+    user = User.query.filter_by(name = username).first()
+    exists = bool(user)
+    return render_template('profile.html', user = user, exists = exists, invaders = Invader.query.all())
+
+from .forms import LoginForm, RegistrationForm, EditProfileForm
+
+@__app__.route('/profile/settings', methods = ['GET', 'POST'])
+@login_required
+def profile_settings():
+    form = EditProfileForm()
+    if form.validate_on_submit():
+        if sha256_crypt.verify(form.password.data, current_user.passwd):
+            if form.new_password.data:
+                hashed_password = sha256_crypt.hash(form.new_password.data)
+                current_user.passwd = hashed_password
+            if form.username.data:
+                current_user.name = form.username.data
+            db.session.commit()
+            next_page = request.args.get('next')
+            return redirect(next_page or url_for('map'))
+    elif request.method == 'GET':
+        form.username.data = current_user.name
+    return render_template('settings.html', form = form)
 
 @__app__.route('/login', methods = ['GET', 'POST'])
 def login():
@@ -135,7 +169,7 @@ def delete_invader():
 @__app__.route('/api/current-user', methods = ['GET'])
 def get_current_user():
     return jsonify({
-        'current_user': current_user.as_json()
+        'current_user': current_user.as_json() if current_user.is_authenticated else None
     })
 
 from .models import Invader, User

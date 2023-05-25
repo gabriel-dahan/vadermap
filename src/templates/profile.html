@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>VaderProfile</title>
+    </head>
+    <body>
+        {% if exists %}
+            <h1>{{ user.name }}</h1>
+            {% if user.id == current_user.id %}
+                <a href="{{ url_for('profile_settings') }}">Modifier le profil</a>
+                <a href="{{ url_for('logout') }}">Se déconnecter</a>
+            {% endif %}
+            <p>{{ user.invaders|length }}/{{ invaders|length }}</p>
+            <ul class="invaders">
+                {% for invader in user.invaders %}
+                    <li>{{ invader }}</li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>Cet utilisateur n'existe pas...</p>
+        {% endif %}
+    </body>
+</html>

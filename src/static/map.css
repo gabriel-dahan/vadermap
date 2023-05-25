@@ -27,7 +27,17 @@
 }
 
 .space-invaders > p {
-    color: #ffffff;
+    color: #fff;
+    text-align: center;
+}
+
+.space-invaders > p > strong > a {
+    color: #fff;
+    transition: 0.3s;
+}
+
+.space-invaders > p > strong > a:hover {
+    color: #dddddd;
 }
 
 .space-invaders > .title {

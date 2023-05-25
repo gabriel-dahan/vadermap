@@ -4,30 +4,30 @@
         <meta charset="UTF-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>VaderMap</title>
-        
-        <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-        <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
 
-        <link rel="stylesheet" href="{{ url_for('static', filename='node_modules/leaflet/dist/leaflet.css') }}" />
-        <script src="{{ url_for('static', filename='node_modules/leaflet/dist/leaflet.js') }}"></script>
+        <link rel="stylesheet" href="{{ url_for('static', filename='index.css') }}">
+        <title>VaderHome</title>
     </head>
     <body>
-        <div id="map"></div>
-        <div class="space-invaders">
-            <span class="title">
-                <h1>VaderMap</h1>
-                <img src="{{ url_for('static', filename='img/invader-logo-white.png') }}" alt="Invader Logo">
-            </span>
-            <p>Connecté en tant que <strong>{{ current_user.name }}</strong></p>
+        <div class="container">
+            <div class="map-access">
+                <a href="{{ url_for('map') }}">Accéder à la carte</a>
+            </div>
+            {% if current_user.is_authenticated %}
+                <div class="profile">
+                    <a href="{{ url_for('my_profile') }}">Votre profil</a>
+                </div>
+            {% endif %}
+            <div class="collaborators">
+                <p>Collaborateurs : </p>
+                <ul>
+                    {% for user in users %}
+                        <li>
+                            <a href="{{ url_for('user_profile', username = user.name) }}">{{ user.name }}</a>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
         </div>
-
-        <script src="mapping.js"></script>
-        <script>
-            (async () => { 
-                const vaderMap = new VaderMap('map');
-                await vaderMap.init();
-            })();
-        </script>
     </body>
 </html>

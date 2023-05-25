@@ -1,0 +1,94 @@
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@100&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: bold;
+}
+
+body {
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+}
+
+.container a {
+    text-decoration: none;
+}
+
+.container {
+    height: 100%;
+    width: 215px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 25px;
+}
+
+.container > .map-access > a {
+    color: #fff;
+    background-color: #4195f5;
+    font-size: 18px;
+    transition: 0.3s;
+    padding: 5px 10px;
+    border-radius: 5px;
+}
+
+.container > .map-access > a:hover {
+    color: #4195f5;
+    background-color: #fff;
+}
+
+.container > .profile > a {
+    color: #6ea8eb;
+    transition: 0.2s;
+    padding-bottom: 5px;
+    border-radius: 5px;
+    border-bottom: 3px solid transparent;
+}
+
+.container > .profile > a:hover {
+    border-color: #6ea8eb;
+}
+
+.container > .collaborators {
+    border: 2px solid #7c59fa;
+    padding: 10px;
+    border-radius: 10px;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.container > .collaborators > p {
+    color: #7c59fa;
+}
+
+.container > .collaborators > ul {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+.container > .collaborators > ul > li {
+    list-style: none;
+    padding: 3px 8px;
+}
+
+.container > .collaborators > ul > li > a {
+    background-color: #7c59fa;
+    padding: 3px 8px;
+    color: #fff;
+    font-size: 14px;
+    border-radius: 5px;
+    transition: 0.3s;
+}
+
+.container > .collaborators > ul > li > a:hover {
+    background-color: #6540e9;
+}
