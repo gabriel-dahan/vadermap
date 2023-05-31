@@ -1,0 +1,69 @@
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@100&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: bold;
+}
+
+body {
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+}
+
+.container a {
+    text-decoration: none;
+}
+
+.container {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 25px;
+}
+
+.container > .account-btns > a {
+    transition: 0.3s;
+}
+
+.container > .account-btns > .edit-profile {
+    color: #65b3f3;
+}
+
+.container > .account-btns > .edit-profile:hover {
+    color: #489bdf;
+}
+
+.container > .account-btns > .logout {
+    color: #ff7878;
+}
+
+.container > .account-btns > .logout:hover {
+    color: #ff5454;
+}
+
+.container > .invaders {
+    display: grid;
+    gap: 10px;
+    grid-template-columns: repeat(6, 1fr);
+    overflow-y: scroll;
+    height: 400px;
+}
+
+.container > .invaders > div {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 5px;
+    padding: 5px;
+    aspect-ratio: 1;
+}
+
+.container > .invaders > .active {
+    background-color: rgb(93, 189, 93);
+}

@@ -40,6 +40,7 @@ class User(db.Model, UserMixin):
     id: float = db.Column(db.Integer, primary_key = True)
     name: str = db.Column(db.String(20), unique = True, nullable = False)
     passwd: str = db.Column(db.String(80), nullable = False)
+    privileges: int = db.Column(db.Integer, default = 0)
 
     # INVADERS RELATIONSHIP
     invaders = db.relationship('Invader', secondary = users_invaders, backref='users') # Many-to-Many
@@ -53,7 +54,8 @@ class User(db.Model, UserMixin):
         """ Returns the User object without relations to other tables (e.g. self.invaders). """
         return {
             'id': self.id,
-            'name': self.name
+            'name': self.name,
+            'privileges': self.privileges or 0
         }
 
     def __repr__(self) -> str:

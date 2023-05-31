@@ -77,6 +77,23 @@
     gap: 15px;
 }
 
+/* MARKER CLUSTERS */
+
+.cluster-icon {
+    width: 30px;
+    height: 30px;
+    background-color: #fff;
+    border-radius: 50%;
+    border: 1px solid #000;
+    display: flex !important;
+    justify-content: center;
+    align-items: center;
+}
+
+.cluster-icon > b {
+    font-size: 16px;
+}
+
 @media screen and (max-width: 630px) {
     .space-invaders {
         width: 100%;

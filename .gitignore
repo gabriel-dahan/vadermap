@@ -4,3 +4,4 @@ node_modules/
 instance/
 package-lock.json
 __pycache__/
+migrations/

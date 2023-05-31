@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, jsonify, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, current_user, login_user, login_required, logout_user
+from flask_migrate import Migrate
 
 from passlib.hash import sha256_crypt
 from dotenv import dotenv_values
@@ -22,6 +23,7 @@ __app__.url_map.strict_slashes = False
 __app__.config['SQLALCHEMY_DATABASE_URI'] = CONF['DB_URI']
 __app__.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(__app__)
+migrate = Migrate(__app__, db)
 
 # LOGIN MANAGER
 login_manager = LoginManager(__app__)

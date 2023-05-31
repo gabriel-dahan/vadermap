@@ -9,8 +9,20 @@
         <link rel="stylesheet" href="{{ url_for('static', filename='map.css') }}">
         <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
 
+        <!-- LEAFLET -->
         <link rel="stylesheet" href="{{ url_for('static', filename='node_modules/leaflet/dist/leaflet.css') }}" />
         <script src="{{ url_for('static', filename='node_modules/leaflet/dist/leaflet.js') }}"></script>
+
+        <!-- MAPLIBRE-GL -->
+        <link rel="stylesheet" href="{{ url_for('static', filename='node_modules/maplibre-gl/dist/maplibre-gl.css') }}" />
+        <script src="{{ url_for('static', filename='node_modules/maplibre-gl/dist/maplibre-gl.js') }}"></script>
+        
+        <script src="{{ url_for('static', filename='node_modules/@maplibre/maplibre-gl-leaflet/leaflet-maplibre-gl.js') }}"></script>
+
+        <!-- LEAFLET - MARKERCLUSTERS -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.1/leaflet.markercluster.js"></script>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.1/MarkerCluster.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.1/MarkerCluster.Default.css" />
     </head>
     <body>
         <div id="map"></div>

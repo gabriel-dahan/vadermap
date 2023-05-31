@@ -60,10 +60,11 @@ class VaderAPI {
 }
 
 class VaderMap {
-    constructor(mapElementId, mapOrigin = [48.85895522569794, 2.3454093933105473], mapZoom = 12) {
+    constructor(mapElementId, mapOrigin = [48.85895522569794, 2.3454093933105473], mapZoom = 12, maxZoom = 18) {
         this.mapId = mapElementId;
         this.mapOrigin = mapOrigin;
         this.mapZoom = mapZoom;
+        this.maxZoom = maxZoom;
         this.activeMarkers = [];
 
         this.api = new VaderAPI();
@@ -108,8 +109,9 @@ class VaderMap {
             this.mapZoom
         );
         this.map.zoomControl.remove();
+        this.map.options.maxZoom = this.maxZoom;
 
-        
+        this._initClusters();
         this._initGeoLoc();
 
         if(this.data) {
@@ -118,8 +120,14 @@ class VaderMap {
             });
         }
 
-        L.tileLayer(
-            'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png'
+        /* let gl = L.maplibreGL({
+            // style: 'https://tiles.stadiamaps.com/styles/alidade_smooth_dark.json',
+            attribution: '',
+            maxZoom: 22
+        }).addTo(this.map); */
+
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png', 
+            // attribution: '&copy; <a href="https://stadiamaps.com/">Stadia Maps</a>, &copy; <a href="https://openmaptiles.org/">OpenMapTiles</a> &copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
         ).addTo(this.map);
 
 
@@ -129,6 +137,30 @@ class VaderMap {
         }
 
         this.map.on('click', mapClick);
+    }
+
+    _initClusters() {
+        this.markerClusterGroup = L.markerClusterGroup({
+            disableClusteringAtZoom: 18,
+            iconCreateFunction: function(cluster) {
+                return L.divIcon({ 
+                    html: `
+                        <b>${cluster.getChildCount()}</b>
+                    `,
+                    className: 'cluster-icon',
+                    iconSize: [30, 30]
+                });
+            }
+        });
+        this.map.addLayer(this.markerClusterGroup);
+    }
+      
+    addMarkerToCluster(marker) {
+        this.markerClusterGroup.addLayer(marker);
+    }
+    
+    clearClusters() {
+        this.markerClusterGroup.clearLayers();
     }
 
     _initGeoLoc() {
@@ -209,11 +241,13 @@ class VaderMap {
     async addInvaderMarker(lat, lng) {
         const invader = this.getInvaderData(lat, lng);
         let icon = this.otherInvaderIcon;
+        const isInvaderOwner = invader.users.length > 0 ? this.currentUser.id === invader.users[0].id : true;
         const hasInvader = this.hasInvader(this.currentUser, invader);
         if(hasInvader) {
             icon = this.invaderIcon;
         }
-        let spaceInvMarker = L.marker([lat, lng], { icon: icon }).addTo(this.map);
+        let spaceInvMarker = L.marker([lat, lng], { icon: icon });
+        this.addMarkerToCluster(spaceInvMarker);
 
         const formatedUsers = invader.users.map(user => `<li>${user.name}</li>`).join('');
         const date = new Date(invader.date);
@@ -229,12 +263,17 @@ class VaderMap {
             <small>${date.toLocaleString()}</small>
         `;
 
-        let deleteBtn = document.createElement('button');
-        deleteBtn.innerHTML = '<strong>Supprimer</strong>';
-        deleteBtn.style.background = 'transparent';
-        deleteBtn.style.border = 'none';
-        deleteBtn.style.cursor = 'pointer';
-        deleteBtn.onclick = () => { this.deleteInvader(spaceInvMarker); };
+        let btns = document.createElement('div');
+
+        if(isInvaderOwner || this.currentUser.privileges >= 1) {
+            let deleteBtn = document.createElement('button');
+            deleteBtn.innerHTML = '<strong>Supprimer</strong>';
+            deleteBtn.style.background = 'transparent';
+            deleteBtn.style.border = 'none';
+            deleteBtn.style.cursor = 'pointer';
+            deleteBtn.onclick = () => { this.deleteInvader(spaceInvMarker); };
+            btns.appendChild(deleteBtn);
+        }
         
         let claimBtn = document.createElement('button');
         claimBtn.innerHTML = hasInvader ? '<strong>Ne plus marquer</strong>' : '<strong>Marquer</strong>';
@@ -242,9 +281,6 @@ class VaderMap {
         claimBtn.style.border = 'none';
         claimBtn.style.cursor = 'pointer';
         claimBtn.onclick = async () => { await this.updateClaimState(lat, lng, spaceInvMarker); };
-
-        let btns = document.createElement('div');
-        btns.appendChild(deleteBtn);
         btns.appendChild(claimBtn);
 
         invaderContainer.appendChild(btns);
@@ -255,7 +291,7 @@ class VaderMap {
     async updateClaimState(lat, lng, marker) {
         const claimed = await this.api.claimInvader(lat, lng);
         await this.reloadData();
-        marker.remove()
+        this.markerClusterGroup.removeLayer(marker);
         await this.addInvaderMarker(lat, lng);
     }
 

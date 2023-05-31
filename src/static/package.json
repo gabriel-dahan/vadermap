@@ -12,6 +12,8 @@
     "leaflet": "^1.9.3"
   },
   "dependencies": {
-    "leaflet.markercluster": "^1.5.3"
+    "@maplibre/maplibre-gl-leaflet": "^0.0.19",
+    "leaflet.markercluster": "^1.5.3",
+    "maplibre-gl": "^3.0.1"
   }
 }

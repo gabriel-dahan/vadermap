@@ -92,3 +92,11 @@ body {
 .container > .collaborators > ul > li > a:hover {
     background-color: #6540e9;
 }
+
+.privileges {
+    color:rgb(231, 120, 126);
+}
+
+p.user-infos {
+    text-align: center;
+}

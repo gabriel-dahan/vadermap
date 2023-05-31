@@ -52,6 +52,7 @@ body {
 .form > form > .form-fields > .form-field > input {
     border-radius: 5px;
     padding: 3px 0 3px 7px;
+    flex: 1;
     font-family: 'JetBrains Mono', monospace;
     font-weight: 800;
 }
@@ -84,7 +85,7 @@ body {
 }
 
 @media screen and (max-width: 485px) {
-    .form > form > .form-fields > .form-field > input {
+    .form > form > .form-fields > .form-field {
         width: 300px;
     }
 }
