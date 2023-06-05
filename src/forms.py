@@ -1,8 +1,6 @@
 from flask_wtf import FlaskForm
-from flask_login import current_user
 from wtforms import (
-    StringField, PasswordField, SubmitField,
-    BooleanField
+    StringField, PasswordField, SubmitField
 )
 from wtforms.validators import (
     DataRequired, Length, EqualTo, ValidationError, Regexp
@@ -51,11 +49,23 @@ class RegistrationForm(FlaskForm):
             EqualTo('password', FormErrors.PASSWORD_DOESNT_MATCH),
         ]
     )
+
+    master_pwd = PasswordField(
+        'Master key',
+        validators = [
+            DataRequired(FormErrors.FIELD_REQUIRED),
+        ]
+    )
+
     submit = SubmitField('S\'enregistrer')
 
     def validate_username(self, username):
         if user := User.query.filter_by(name = username.data).first():
             raise ValidationError(FormErrors.USERNAME_ALREADY_EXISTS)
+        
+    def validate_master_pwd(self, master_pwd):
+        if master_pwd.data != 'VM7277-110503':
+            raise ValidationError('Mot de passe maître invalide... \n S\'il ne vous a pas été explicitement donné, vous n\'êtes probablement pas le/la bienvenu(e) ici :(')
         
 class LoginForm(FlaskForm):
     username = StringField(

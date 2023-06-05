@@ -50,6 +50,17 @@
                             </div>
                         {% endif %}
                     </div>
+                    <div class="form-field">
+                        <p>{{ form.master_pwd.label }}</p>
+                        {{ form.master_pwd }}
+                        {% if form.master_pwd.errors %}
+                            <div class="invalid">
+                                {% for error in form.master_pwd.errors %}
+                                    <span>{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
                     <div class="submit">
                         {{ form.submit }}
                     </div>

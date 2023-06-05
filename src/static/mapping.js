@@ -121,7 +121,7 @@ class VaderMap {
         }
 
         /* let gl = L.maplibreGL({
-            // style: 'https://tiles.stadiamaps.com/styles/alidade_smooth_dark.json',
+            style: 'https://tiles.stadiamaps.com/styles/alidade_smooth_dark.json',
             attribution: '',
             maxZoom: 22
         }).addTo(this.map); */
@@ -218,8 +218,7 @@ class VaderMap {
     }
 
     async deleteInvader(marker) {
-        const latLng = marker.getLatLng();
-        marker.remove();
+        this.markerClusterGroup.removeLayer(marker);
         this.activeMarkers.splice(this.activeMarkers.indexOf(marker), 1);
         await this.api.deleteInvader(marker);
         await this.reloadData();
