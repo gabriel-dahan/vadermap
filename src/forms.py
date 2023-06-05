@@ -6,6 +6,7 @@ from wtforms.validators import (
     DataRequired, Length, EqualTo, ValidationError, Regexp
 )
 
+from . import CONF
 from .models import User
 
 USERNAME_MIN_LENGTH = 3
@@ -64,7 +65,7 @@ class RegistrationForm(FlaskForm):
             raise ValidationError(FormErrors.USERNAME_ALREADY_EXISTS)
         
     def validate_master_pwd(self, master_pwd):
-        if master_pwd.data != 'VM7277-110503':
+        if master_pwd.data != CONF['MASTER_KEY']:
             raise ValidationError('Mot de passe maître invalide... \n S\'il ne vous a pas été explicitement donné, vous n\'êtes probablement pas le/la bienvenu(e) ici :(')
         
 class LoginForm(FlaskForm):
