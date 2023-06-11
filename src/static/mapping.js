@@ -100,7 +100,7 @@ class VaderMap {
         this.data = null;
     }
 
-    async init() {
+    async init(fitBounds = true) {
         await this.reloadData();
         this.currentUser = (await this.api.getCurrentUser()).current_user;
 
@@ -112,7 +112,7 @@ class VaderMap {
         this.map.options.maxZoom = this.maxZoom;
 
         this._initClusters();
-        this._initGeoLoc();
+        this._initGeoLoc(fitBounds);
 
         if(this.data) {
             this.data.invaders.forEach(async invader => {
@@ -142,12 +142,16 @@ class VaderMap {
     _initClusters() {
         this.markerClusterGroup = L.markerClusterGroup({
             disableClusteringAtZoom: 18,
-            iconCreateFunction: function(cluster) {
+            iconCreateFunction: (cluster) => {
+                let dark = cluster.getAllChildMarkers().some(marker => {
+                    return marker.getIcon() === this.otherInvaderIcon
+                });
+                console.log(dark)
                 return L.divIcon({ 
                     html: `
                         <b>${cluster.getChildCount()}</b>
                     `,
-                    className: 'cluster-icon',
+                    className: dark ? 'cluster-icon dark' : 'cluster-icon',
                     iconSize: [30, 30]
                 });
             }
@@ -163,7 +167,7 @@ class VaderMap {
         this.markerClusterGroup.clearLayers();
     }
 
-    _initGeoLoc() {
+    _initGeoLoc(fitBounds = true) {
         const geolocDenied = (err) => {
             if (err.code === 1) {
                 console.error('Géolocalisation non acceptée.');
@@ -185,7 +189,7 @@ class VaderMap {
             this.currentPos.marker.setZIndexOffset(-100);
             this.currentPos.accCircle = L.circle([lat, lng], { radius: accuracy }).addTo(this.map);
 
-            if(!this.currentPos.zoomed) {
+            if(!this.currentPos.zoomed && fitBounds) {
                 this.currentPos.zoomed = this.map.fitBounds(this.currentPos.accCircle.getBounds());
             }
         }, geolocDenied);
@@ -254,7 +258,7 @@ class VaderMap {
         let invaderContainer = document.createElement('div');
         invaderContainer.classList.add('invader-marker');
         invaderContainer.innerHTML = `
-            <p class="invader-name">${invader.name} <span class="id">(#${invader.id})</span></p>
+            <p class="invader-name">n°${this.data.invaders.indexOf(invader) + 1} <span style="color: gray; font-size: 10px;">(#${invader.id})</span></p>
             <p>Trouvé par :</p>
             <ul>
                 ${formatedUsers}

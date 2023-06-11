@@ -21,11 +21,13 @@
                 <p>{{ user.invaders|length }}/{{ invaders|length }} invaders</p>
                 <div class="invaders">
                     {% for invader in invaders|sort(attribute='id') %}
-                        {% if invader in user.invaders %}
-                            <div class="active">{{ loop.index }}</div>
-                        {% else %}
-                            <div>{{ loop.index }}</div>
-                        {% endif %}
+                        <a href="{{ url_for('map', lat=invader.lat, lng=invader.lng) }}">
+                            {% if invader in user.invaders %}
+                                <div class="active">{{ loop.index }}</div>
+                            {% else %}
+                                <div>{{ loop.index }}</div>
+                            {% endif %}
+                        </a>
                     {% endfor %}
                 </ul>
             </div>

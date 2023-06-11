@@ -13,12 +13,6 @@
         <link rel="stylesheet" href="{{ url_for('static', filename='node_modules/leaflet/dist/leaflet.css') }}" />
         <script src="{{ url_for('static', filename='node_modules/leaflet/dist/leaflet.js') }}"></script>
 
-        <!-- MAPLIBRE-GL -->
-        <link rel="stylesheet" href="{{ url_for('static', filename='node_modules/maplibre-gl/dist/maplibre-gl.css') }}" />
-        <script src="{{ url_for('static', filename='node_modules/maplibre-gl/dist/maplibre-gl.js') }}"></script>
-        
-        <script src="{{ url_for('static', filename='node_modules/@maplibre/maplibre-gl-leaflet/leaflet-maplibre-gl.js') }}"></script>
-
         <!-- LEAFLET - MARKERCLUSTERS -->
         <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.1/leaflet.markercluster.js"></script>
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.1/MarkerCluster.css" />
@@ -38,7 +32,18 @@
         <script>
             (async () => { 
                 const vaderMap = new VaderMap('map');
-                await vaderMap.init();
+                
+                const urlParams = new URLSearchParams(window.location.search);
+                const lat = urlParams.get('lat');
+                const lng = urlParams.get('lng');
+
+                
+                if(lat && lng) {
+                    await vaderMap.init(false) // 'false' prevents centering to the user's position instead of the invader (when geoloc is activated).
+                        .then(() => vaderMap.centerToInvader(parseFloat(lat), parseFloat(lng)));
+                } else {
+                    await vaderMap.init();
+                }
             })();
         </script>
     </body>
