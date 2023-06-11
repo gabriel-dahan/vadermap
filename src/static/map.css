@@ -50,7 +50,16 @@
 
 .space-invaders > .title > h1 {
     font-size: 16px; 
+}
+
+.space-invaders > .title > h1 > a {
+    text-decoration: none;
     color: #fff;
+    transition: 0.5s;
+}
+
+.space-invaders > .title > h1 > a:hover {
+    color: #dfdfdf;
 }
 
 .space-invaders > .title > img {

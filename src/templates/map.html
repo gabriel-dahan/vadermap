@@ -22,7 +22,7 @@
         <div id="map"></div>
         <div class="space-invaders">
             <span class="title">
-                <h1>VaderMap</h1>
+                <h1><a href="{{ url_for('home') }}">VaderMap</a></h1>
                 <img src="{{ url_for('static', filename='img/invader-logo-white.png') }}" alt="Invader Logo">
             </span>
             <p>Connecté en tant que <strong><a href="{{ url_for('my_profile') }}">{{ current_user.name }}</a></strong> ({{ current_user.invaders|length }}/{{ invaders|length }})</p>
@@ -36,11 +36,13 @@
                 const urlParams = new URLSearchParams(window.location.search);
                 const lat = urlParams.get('lat');
                 const lng = urlParams.get('lng');
-
                 
                 if(lat && lng) {
                     await vaderMap.init(false) // 'false' prevents centering to the user's position instead of the invader (when geoloc is activated).
-                        .then(() => vaderMap.centerToInvader(parseFloat(lat), parseFloat(lng)));
+                        .then(() => {
+                            vaderMap.centerToInvader(parseFloat(lat), parseFloat(lng));
+                            history.pushState({}, document.title, window.location.pathname);
+                        });
                 } else {
                     await vaderMap.init();
                 }

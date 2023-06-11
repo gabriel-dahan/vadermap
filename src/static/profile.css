@@ -73,3 +73,7 @@ body {
 .container > .invaders > a > div.active {
     background-color: rgb(93, 189, 93);
 }
+
+.container > .invaders > a > div:hover {
+    background-color: rgb(196, 196, 196);
+}
