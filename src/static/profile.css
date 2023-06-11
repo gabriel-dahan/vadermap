@@ -56,7 +56,12 @@ body {
     height: 400px;
 }
 
-.container > .invaders > div {
+.container > .invaders > a {
+    text-decoration: none;
+    color: #000;
+}
+
+.container > .invaders > a > div {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -65,6 +70,6 @@ body {
     aspect-ratio: 1;
 }
 
-.container > .invaders > .active {
+.container > .invaders > a > div.active {
     background-color: rgb(93, 189, 93);
 }

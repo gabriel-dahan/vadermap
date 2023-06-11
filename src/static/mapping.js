@@ -146,10 +146,16 @@ class VaderMap {
                 let dark = cluster.getAllChildMarkers().some(marker => {
                     return marker.getIcon() === this.otherInvaderIcon
                 });
-                console.log(dark)
+                const count = cluster.getChildCount();
+                let fontSize = 14;
+                if(count > 99) {
+                    fontSize = 12;
+                } else if(count > 999) {
+                    fontSize = 10;
+                }
                 return L.divIcon({ 
                     html: `
-                        <b>${cluster.getChildCount()}</b>
+                        <b style="font-size: ${fontSize}px;">${count}</b>
                     `,
                     className: dark ? 'cluster-icon dark' : 'cluster-icon',
                     iconSize: [30, 30]

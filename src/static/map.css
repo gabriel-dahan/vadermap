@@ -97,10 +97,6 @@
     color: #fff;
 }
 
-.cluster-icon > b {
-    font-size: 16px;
-}
-
 @media screen and (max-width: 630px) {
     .space-invaders {
         width: 100%;
