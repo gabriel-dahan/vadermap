@@ -10,6 +10,10 @@
 
 #map { height: 100vh; }
 
+#modal {
+    /* ... */
+}
+
 .space-invaders {
     z-index: 500;
     width: 300px;

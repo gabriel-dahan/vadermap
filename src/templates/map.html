@@ -28,6 +28,8 @@
             <p>Connecté en tant que <strong><a href="{{ url_for('my_profile') }}">{{ current_user.name }}</a></strong> ({{ current_user.invaders|length }}/{{ invaders|length }})</p>
         </div>
 
+        <div id="modal"></div>
+
         <script src="mapping.js"></script>
         <script>
             (async () => { 

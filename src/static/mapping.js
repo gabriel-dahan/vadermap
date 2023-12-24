@@ -104,7 +104,12 @@ class VaderMap {
         await this.reloadData();
         this.currentUser = (await this.api.getCurrentUser()).current_user;
 
-        this.map = L.map(this.mapId).setView(
+        let bounds = new L.LatLngBounds(new L.LatLng(-90, -180), new L.LatLng(90, 180))
+
+        this.map = L.map(this.mapId, {
+            maxBounds: bounds,
+            maxBoundsViscosity: 0.75
+        }).setView(
             this.mapOrigin, 
             this.mapZoom
         );
@@ -132,8 +137,10 @@ class VaderMap {
 
 
         const mapClick = (e) => {
-            let latLng = e.latlng;
-            this.addInvader(latLng.lat, latLng.lng);
+            if(confirm(`Confirmer l'ajout de SI n°${this.data.invaders.length + 1} ?`)) {
+                let latLng = e.latlng;
+                this.addInvader(latLng.lat, latLng.lng);
+            }
         }
 
         this.map.on('click', mapClick);
