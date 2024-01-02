@@ -30,7 +30,7 @@
 
         <div id="modal"></div>
 
-        <script src="mapping.js"></script>
+        <script src="{{ url_for('static', filename='mapping.js') }}"></script>
         <script>
             (async () => { 
                 const vaderMap = new VaderMap('map');

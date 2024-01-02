@@ -13,10 +13,22 @@ body {
     height: 100vh;
     display: flex;
     justify-content: center;
+    padding: 50px 0;
 }
 
 .container a {
     text-decoration: none;
+}
+
+.container > .header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.container > .header > a > img {
+    width: 30px;
+    height: auto;
 }
 
 .container {
@@ -76,4 +88,9 @@ body {
 
 .container > .invaders > a > div:hover {
     background-color: rgb(196, 196, 196);
+}
+
+#user-stats {
+    display: flex;
+    width: 500px;
 }

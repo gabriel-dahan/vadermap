@@ -5,7 +5,14 @@ class VaderAPI {
 
     async _get(endpoint) {
         return (await fetch(endpoint, {
-            method: 'GET',
+            method: 'GET'
+        })).json();
+    }
+
+    async _get(endpoint, payload) {
+        return (await fetch(endpoint + '/?' + (new URLSearchParams(payload)).toString(), 
+            {
+            method: 'GET'
         })).json();
     }
 
@@ -33,6 +40,15 @@ class VaderAPI {
             {
                 lat: lat,
                 lng: lng
+            }
+        )
+    }
+
+    async getUser(name) {
+        return await this._get(
+            this.base + 'get-user',
+            {
+                user: name
             }
         )
     }

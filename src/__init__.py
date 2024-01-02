@@ -174,4 +174,24 @@ def get_current_user():
         'current_user': current_user.as_json() if current_user.is_authenticated else None
     })
 
+@__app__.route('/api/get-user', methods = ['GET'])
+def get_user():
+    data = request.args
+    name = data.get('user')
+
+    if not name:
+        return jsonify({
+            'error': 'Missing user argument.'
+        })
+    
+    user = User.query.filter_by(name = name).first()
+    if not user:
+        return jsonify({
+            'error': f'User {name} does not exist.'
+        })
+
+    return jsonify({
+        'user': user.as_json()
+    })
+
 from .models import Invader, User
