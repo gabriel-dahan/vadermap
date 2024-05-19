@@ -89,8 +89,3 @@ body {
 .container > .invaders > a > div:hover {
     background-color: rgb(196, 196, 196);
 }
-
-#user-stats {
-    display: flex;
-    width: 500px;
-}

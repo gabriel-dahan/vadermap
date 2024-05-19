@@ -21,6 +21,7 @@ body {
 
 .container {
     width: 215px;
+    padding: 30px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -52,6 +53,18 @@ body {
 
 .container > .profile > a:hover {
     border-color: #6ea8eb;
+}
+
+.container > .stats > a {
+    color: #0f4ca8;
+    transition: 0.2s;
+    padding-bottom: 5px;
+    border-radius: 5px;
+    border-bottom: 3px solid transparent;
+}
+
+.container > .stats > a:hover {
+    border-color: #0f4ca8;
 }
 
 .container > .collaborators {
@@ -101,4 +114,9 @@ body {
 
 p.user-infos {
     text-align: center;
+}
+
+#stats {
+    display: flex;
+    width: 600px;
 }

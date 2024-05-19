@@ -114,6 +114,10 @@ def logout():
         logout_user()
     return redirect(url_for('map'))
 
+@__app__.route('/stats')
+def stats():
+    return render_template('stats.html')
+
 ### API ###
 
 @__app__.route('/api/map')
@@ -133,7 +137,23 @@ def claim_invader():
     
     vmap.claim_invader(lat, lng)
     return jsonify({
-        'message': 'Invader claimed successfuly'
+        'message': 'Invader claimed successfully.'
+    })
+
+@__app__.route('/api/invader-does-not-exist', methods = ['POST'])
+def invader_does_not_exist():
+    data = request.get_json()
+    lat = data.get('lat')
+    lng = data.get('lng')
+
+    if not lat or not lng:
+        return jsonify({
+            'error': 'Missing one argument.'
+        })
+    
+    vmap.invader_does_not_exist(lat, lng)
+    return jsonify({
+        'message': 'Invader status changed successfully.'
     })
 
 @__app__.route('/api/add-invader', methods = ['POST'])
@@ -165,7 +185,7 @@ def delete_invader():
     
     vmap.delete_invader(lat, lng)
     return jsonify({
-        'message': 'Invader removed successfuly'
+        'message': 'Invader removed successfully.'
     })
 
 @__app__.route('/api/current-user', methods = ['GET'])

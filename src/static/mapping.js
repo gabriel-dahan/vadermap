@@ -34,6 +34,16 @@ class VaderAPI {
         return await this._get(this.base + 'map');
     }
 
+    async doesNotExist(lat, lng) {
+        return await this._post(
+            this.base + 'invader-does-not-exist',
+            {
+                lat: lat,
+                lng: lng
+            }
+        )
+    }
+
     async claimInvader(lat, lng) {
         return await this._post(
             this.base + 'claim-invader',
@@ -95,7 +105,8 @@ class VaderMap {
         this.icons = {
             pointer: IMG_PATH + 'pointer.png',
             invader: IMG_PATH + 'invader-logo-white.png',
-            otherInvader: IMG_PATH + 'invader-logo.png'
+            otherInvader: IMG_PATH + 'invader-logo.png',
+            redInvader: IMG_PATH + 'invader-logo-red.png'
         }
 
         this.pointer = L.icon({
@@ -112,6 +123,11 @@ class VaderMap {
             iconUrl: this.icons.otherInvader,
             iconSize: [40, 40]
         });
+
+        this.redInvaderIcon = L.icon({
+            iconUrl: this.icons.redInvader,
+            iconSize: [40, 40]
+        })
 
         this.data = null;
     }
@@ -251,10 +267,28 @@ class VaderMap {
     }
 
     async deleteInvader(marker) {
-        this.markerClusterGroup.removeLayer(marker);
-        this.activeMarkers.splice(this.activeMarkers.indexOf(marker), 1);
-        await this.api.deleteInvader(marker);
+        if (confirm(`Confirmer la suppression ?`)) {
+            this.markerClusterGroup.removeLayer(marker);
+            this.activeMarkers.splice(this.activeMarkers.indexOf(marker), 1);
+            await this.api.deleteInvader(marker);
+            await this.reloadData();
+        }
+    }
+
+    async updateInvader(lat, lng, marker) {
         await this.reloadData();
+        this.markerClusterGroup.removeLayer(marker);
+        await this.addInvaderMarker(lat, lng);
+    }
+
+    async updateClaimState(lat, lng, marker) {
+        const claimed = await this.api.claimInvader(lat, lng);
+        await this.updateInvader(lat, lng, marker);
+    }
+
+    async updateExistence(lat, lng, marker) {
+        const exists = await this.api.doesNotExist(lat, lng);
+        await this.updateInvader(lat, lng, marker);
     }
 
     hasInvader(user, invader) {
@@ -277,6 +311,8 @@ class VaderMap {
         const hasInvader = this.hasInvader(this.currentUser, invader);
         if(hasInvader) {
             icon = this.invaderIcon;
+        } else if(!invader.exists) {
+            icon = this.redInvaderIcon;
         }
         let spaceInvMarker = L.marker([lat, lng], { icon: icon });
         this.addMarkerToCluster(spaceInvMarker);
@@ -293,6 +329,7 @@ class VaderMap {
                 ${formatedUsers}
             </ul>
             <small>${date.toLocaleString()}</small>
+            <small>${this.getFormatedDeltaTime(date.toISOString())}</small>
         `;
 
         let btns = document.createElement('div');
@@ -315,16 +352,19 @@ class VaderMap {
         claimBtn.onclick = async () => { await this.updateClaimState(lat, lng, spaceInvMarker); };
         btns.appendChild(claimBtn);
 
+        let existsBtn = document.createElement('button');
+        existsBtn.innerHTML = '<small>Invader introuvable ?</small>';
+        existsBtn.style.background = 'transparent';
+        existsBtn.style.border = 'none';
+        existsBtn.style.cursor = 'pointer';
+        existsBtn.children[0].style.color = 'red';
+        existsBtn.onclick = async () => { await this.updateExistence(lat, lng, spaceInvMarker); };
+        
         invaderContainer.appendChild(btns);
+        invaderContainer.appendChild(existsBtn);
+
         spaceInvMarker.bindPopup(invaderContainer);
         this.activeMarkers.push(spaceInvMarker);
-    }
-
-    async updateClaimState(lat, lng, marker) {
-        const claimed = await this.api.claimInvader(lat, lng);
-        await this.reloadData();
-        this.markerClusterGroup.removeLayer(marker);
-        await this.addInvaderMarker(lat, lng);
     }
 
     async reloadData() {

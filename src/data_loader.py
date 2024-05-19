@@ -31,6 +31,16 @@ class MapData:
             return claimed
         return None
     
+    def invader_does_not_exist(self, lat: float, lng: float) -> dict:
+        if current_user.is_authenticated and (invader := Invader.query.filter(
+            (Invader.lat == lat) & (Invader.lng == lng)
+        ).first()):
+            new_val = not invader.exists
+            invader.exists = new_val
+            db.session.commit()
+            return new_val
+        return None
+
     def add_invader(self, lat: float, lng: float) -> dict:
         new_invader = Invader(
             lat = lat,

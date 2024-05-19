@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+        <!-- PLOT.LY -->
+        <script src="https://cdn.plot.ly/plotly-2.27.0.min.js" charset="utf-8"></script>
+
+        <link rel="stylesheet" href="{{ url_for('static', filename='stats.css') }}">
+        <title>VaderStats</title>
+    </head>
+    <body>
+        <div class="container">
+            <strong>Statistiques</strong>
+            <div id="stats"></div>
+            <p>Plus d'informations à venir...</p>
+        </div>
+
+        <script src="{{ url_for('static', filename='mapping.js') }}"></script>
+        <script>
+            const range = (start, end, step = 1) => {
+                let result = [];
+                for (let i = start; i <= end; i += step) {
+                    result.push(i);
+                }
+                return result;
+            };
+
+            (async () => { 
+                const api = new VaderAPI();
+                const mapData = await api.getMapData();
+
+                const statsEl = document.getElementById('stats');
+
+                const dates = mapData.invaders
+                    .sort((a, b) => { 
+                        let dA = new Date(a.date);
+                        let dB = new Date(b.date);
+                        return dA - dB;
+                    })
+                    .map(invader => invader.date);
+
+                const data = [
+                    {
+                        x: dates,
+                        y: range(1, dates.length),
+                        type: 'scatter'
+                    }
+                ];
+
+                const layout = {
+                    showlegend: false
+                };
+
+                Plotly.newPlot(statsEl, data, layout, {staticPlot: true, responsive: true});
+            })();
+        </script>
+    </body>
+</html>

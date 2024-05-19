@@ -5,9 +5,6 @@
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-        <!-- PLOT.LY -->
-        <script src="https://cdn.plot.ly/plotly-2.27.0.min.js" charset="utf-8"></script>
-
         <link rel="stylesheet" href="{{ url_for('static', filename='profile.css') }}">
         <title>VaderProfile</title>
     </head>
@@ -25,8 +22,6 @@
                     </div>
                 {% endif %}
 
-                <div id="user-stats"></div>
-
                 <p>{{ user.invaders|length }}/{{ invaders|length }} invaders</p>
                 <div class="invaders">
                     {% for invader in invaders|sort(attribute='id') %}
@@ -43,47 +38,5 @@
         {% else %}
             <p>Cet utilisateur n'existe pas...</p>
         {% endif %}
-
-
-        <script src="{{ url_for('static', filename='mapping.js') }}"></script>
-        <script>
-            const range = (start, end, step = 1) => {
-                let result = [];
-                for (let i = start; i <= end; i += step) {
-                    result.push(i);
-                }
-                return result;
-            };
-
-            (async () => { 
-                const api = new VaderAPI();
-
-                const user = (await api.getUser('{{ user.name }}')).user;
-                const statsEl = document.getElementById('user-stats');
-
-                const dates = user.invaders
-                    .sort((a, b) => { 
-                        let dA = new Date(a.date);
-                        let dB = new Date(b.date);
-                        return dA - dB;
-                    })
-                    .map(invader => invader.date);
-
-                const data = [
-                    {
-                        x: dates,
-                        y: range(1, dates.length),
-                        type: 'scatter'
-                    }
-                ];
-
-                const layout = {
-                    title: 'Statistiques',
-                    showlegend: false
-                };
-
-                Plotly.newPlot(statsEl, data, layout, {staticPlot: true, responsive: true});
-            })();
-        </script>
     </body>
 </html>

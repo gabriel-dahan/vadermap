@@ -17,6 +17,7 @@ class Invader(db.Model):
     lat: float = db.Column(db.Float, nullable = False)
     lng: float = db.Column(db.Float, nullable = False)
     date: datetime = db.Column(db.DateTime, default = datetime.now, nullable = False)
+    exists: bool = db.Column(db.Boolean, nullable = False, server_default = '1')
 
     def as_json(self) -> dict:
         return {**self.as_json_norel(), **{
@@ -28,11 +29,12 @@ class Invader(db.Model):
             'id': self.id,
             'lat': self.lat,
             'lng': self.lng,
-            'date': self.date.isoformat()
+            'date': self.date.isoformat(),
+            'exists': self.exists
         }
 
     def __repr__(self) -> str:
-        return f'Invader(lat: {self.lat}, lng: {self.lng}, date: {self.date.isoformat()})'
+        return f'Invader(lat: {self.lat}, lng: {self.lng}, date: {self.date.isoformat()}, exists: {self.exists})'
 
 class User(db.Model, UserMixin):
     __tablename__ = 'users'
@@ -40,7 +42,7 @@ class User(db.Model, UserMixin):
     id: float = db.Column(db.Integer, primary_key = True)
     name: str = db.Column(db.String(20), unique = True, nullable = False)
     passwd: str = db.Column(db.String(80), nullable = False)
-    privileges: int = db.Column(db.Integer, default = 0)
+    privileges: int = db.Column(db.Integer, server_default = '0')
 
     # INVADERS RELATIONSHIP
     invaders = db.relationship('Invader', secondary = users_invaders, backref='users') # Many-to-Many
