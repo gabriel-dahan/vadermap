@@ -1,11 +1,12 @@
 from flask_login import current_user
 
 from . import db
-from .models import Invader, User
+from .models import Invader
 
-from typing import List, Union
+from typing import List, Union, Literal
 from datetime import datetime
 import math
+import requests
 
 class MapData:
 
@@ -31,14 +32,12 @@ class MapData:
             return claimed
         return None
     
-    def invader_does_not_exist(self, lat: float, lng: float) -> dict:
+    def invader_does_not_exist(self, lat: float, lng: float, state: Literal[0, 1, 2]) -> dict:
         if current_user.is_authenticated and (invader := Invader.query.filter(
             (Invader.lat == lat) & (Invader.lng == lng)
         ).first()):
-            new_val = not invader.exists
-            invader.exists = new_val
+            invader.state = state
             db.session.commit()
-            return new_val
         return None
 
     def add_invader(self, lat: float, lng: float) -> dict:

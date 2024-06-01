@@ -34,12 +34,13 @@ class VaderAPI {
         return await this._get(this.base + 'map');
     }
 
-    async doesNotExist(lat, lng) {
+    async doesNotExist(lat, lng, state) {
         return await this._post(
             this.base + 'invader-does-not-exist',
             {
                 lat: lat,
-                lng: lng
+                lng: lng,
+                state: state
             }
         )
     }
@@ -106,7 +107,10 @@ class VaderMap {
             pointer: IMG_PATH + 'pointer.png',
             invader: IMG_PATH + 'invader-logo-white.png',
             otherInvader: IMG_PATH + 'invader-logo.png',
-            redInvader: IMG_PATH + 'invader-logo-red.png'
+            brokenInvader: IMG_PATH + 'invader-logo-broken.png',
+            brokenInvaderWhite: IMG_PATH + 'invader-logo-white-broken.png',
+            inexistentInvader: IMG_PATH + 'invader-logo-inexistent.png',
+            inexistentInvaderWhite: IMG_PATH + 'invader-logo-white-inexistent.png'
         }
 
         this.pointer = L.icon({
@@ -124,8 +128,23 @@ class VaderMap {
             iconSize: [40, 40]
         });
 
-        this.redInvaderIcon = L.icon({
-            iconUrl: this.icons.redInvader,
+        this.brokenInvaderIcon = L.icon({
+            iconUrl: this.icons.brokenInvader,
+            iconSize: [40, 40]
+        })
+
+        this.brokenInvaderWhiteIcon = L.icon({
+            iconUrl: this.icons.brokenInvaderWhite,
+            iconSize: [40, 40]
+        })
+
+        this.inexistentInvaderIcon = L.icon({
+            iconUrl: this.icons.inexistentInvader,
+            iconSize: [40, 40]
+        })
+
+        this.inexistentInvaderWhiteIcon = L.icon({
+            iconUrl: this.icons.inexistentInvaderWhite,
             iconSize: [40, 40]
         })
 
@@ -286,8 +305,8 @@ class VaderMap {
         await this.updateInvader(lat, lng, marker);
     }
 
-    async updateExistence(lat, lng, marker) {
-        const exists = await this.api.doesNotExist(lat, lng);
+    async updateExistence(lat, lng, marker, state) {
+        await this.api.doesNotExist(lat, lng, state);
         await this.updateInvader(lat, lng, marker);
     }
 
@@ -310,9 +329,21 @@ class VaderMap {
         const isInvaderOwner = invader.users.length > 0 ? this.currentUser.id === invader.users[0].id : true;
         const hasInvader = this.hasInvader(this.currentUser, invader);
         if(hasInvader) {
-            icon = this.invaderIcon;
-        } else if(!invader.exists) {
-            icon = this.redInvaderIcon;
+            if(invader.state == 1) {
+                icon = this.inexistentInvaderWhiteIcon;
+            } else if(invader.state == 2) {
+                icon = this.brokenInvaderWhiteIcon;
+            } else {
+                icon = this.invaderIcon;
+            }
+        } else {
+            if(invader.state == 1) {
+                icon = this.inexistentInvaderIcon;
+            } else if(invader.state == 2) {
+                icon = this.brokenInvaderIcon;
+            } else {
+                icon = this.otherInvaderIcon;
+            }
         }
         let spaceInvMarker = L.marker([lat, lng], { icon: icon });
         this.addMarkerToCluster(spaceInvMarker);
@@ -332,7 +363,9 @@ class VaderMap {
             <small>${this.getFormatedDeltaTime(date.toISOString())}</small>
         `;
 
-        let btns = document.createElement('div');
+        // ----- Upper Buttons ----- //
+
+        let upperBtns = document.createElement('div');
 
         if(isInvaderOwner || this.currentUser.privileges >= 1) {
             let deleteBtn = document.createElement('button');
@@ -341,7 +374,7 @@ class VaderMap {
             deleteBtn.style.border = 'none';
             deleteBtn.style.cursor = 'pointer';
             deleteBtn.onclick = () => { this.deleteInvader(spaceInvMarker); };
-            btns.appendChild(deleteBtn);
+            upperBtns.appendChild(deleteBtn);
         }
         
         let claimBtn = document.createElement('button');
@@ -350,18 +383,56 @@ class VaderMap {
         claimBtn.style.border = 'none';
         claimBtn.style.cursor = 'pointer';
         claimBtn.onclick = async () => { await this.updateClaimState(lat, lng, spaceInvMarker); };
-        btns.appendChild(claimBtn);
+        upperBtns.appendChild(claimBtn);
+
+        invaderContainer.appendChild(upperBtns);
+
+        // ------------------------- //
+
+        // Lower Buttons (state change) //
+
+        let lowerBtns = document.createElement('div');
 
         let existsBtn = document.createElement('button');
-        existsBtn.innerHTML = '<small>Invader introuvable ?</small>';
+        existsBtn.innerHTML = `<small>Introuvable</small>`;
         existsBtn.style.background = 'transparent';
         existsBtn.style.border = 'none';
         existsBtn.style.cursor = 'pointer';
         existsBtn.children[0].style.color = 'red';
-        existsBtn.onclick = async () => { await this.updateExistence(lat, lng, spaceInvMarker); };
-        
-        invaderContainer.appendChild(btns);
-        invaderContainer.appendChild(existsBtn);
+        existsBtn.onclick = async () => { await this.updateExistence(lat, lng, spaceInvMarker, 1); };
+        lowerBtns.appendChild(existsBtn);
+
+        let destroyedBtn = document.createElement('button');
+        destroyedBtn.innerHTML = `<small>Détruit</small>`;
+        destroyedBtn.style.background = 'transparent';
+        destroyedBtn.style.border = 'none';
+        destroyedBtn.style.cursor = 'pointer';
+        destroyedBtn.children[0].style.color = 'red';
+        destroyedBtn.onclick = async () => { await this.updateExistence(lat, lng, spaceInvMarker, 2); };
+        lowerBtns.appendChild(destroyedBtn);
+
+        invaderContainer.appendChild(lowerBtns)
+
+        // ------------------------- //
+
+        if(invader.state == 1 || invader.state == 2) {
+            const state = invader.state == 1 ? 'introuvable' : 'détruit';
+
+            let text = document.createElement('small');
+            text.innerHTML = `Cet invader a été marqué comme '${state}', a-t-il été `;
+            text.style.textAlign = 'center';
+
+            let removeStateBtn = document.createElement('button');
+            removeStateBtn.innerHTML = `<small>retrouvé ?</small>`;
+            removeStateBtn.style.background = 'transparent';
+            removeStateBtn.style.border = 'none';
+            removeStateBtn.style.cursor = 'pointer';
+            removeStateBtn.children[0].style.color = '#7c59fa';
+            removeStateBtn.onclick = async () => { await this.updateExistence(lat, lng, spaceInvMarker, 0); };
+
+            text.appendChild(removeStateBtn);
+            invaderContainer.appendChild(text);
+        }
 
         spaceInvMarker.bindPopup(invaderContainer);
         this.activeMarkers.push(spaceInvMarker);

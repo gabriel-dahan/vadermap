@@ -116,7 +116,7 @@ def logout():
 
 @__app__.route('/stats')
 def stats():
-    return render_template('stats.html')
+    return render_template('stats.html', invaders = Invader.query.all())
 
 ### API ###
 
@@ -145,13 +145,14 @@ def invader_does_not_exist():
     data = request.get_json()
     lat = data.get('lat')
     lng = data.get('lng')
+    state = data.get('state')
+    print(type(state))
 
     if not lat or not lng:
         return jsonify({
             'error': 'Missing one argument.'
         })
-    
-    vmap.invader_does_not_exist(lat, lng)
+    vmap.invader_does_not_exist(lat, lng, state)
     return jsonify({
         'message': 'Invader status changed successfully.'
     })

@@ -15,12 +15,15 @@ body {
     justify-content: center;
 }
 
-.container a {
-    text-decoration: none;
+.container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
-.container {
-    width: 215px;
+.container > .stats,
+.container > .logs {
+    width: fit-content;
     padding: 30px;
     display: flex;
     align-items: center;
@@ -29,7 +32,29 @@ body {
     gap: 25px;
 }
 
-#stats {
+.container > .logs > .logs-container {
+    max-height: 300px;
+    overflow: scroll;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: center;
+}
+
+.container > .logs > .logs-container > button {
+    outline: none;
+    background: none;
+    color: rgb(32, 89, 196);
+    border: none;
+    cursor: pointer;
+}
+
+.container > .logs > .logs-container > ul > li > a {
+    color: #2fd44b;
+    text-decoration: none;
+}
+
+#graph {
     display: flex;
     width: 700px;
     height: 500px;

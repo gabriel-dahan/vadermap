@@ -13,12 +13,31 @@
     </head>
     <body>
         <div class="container">
-            <strong>Statistiques</strong>
-            <div id="stats"></div>
-            <p>Plus d'informations à venir...</p>
+            <div class="stats">
+                <strong>Statistiques</strong>
+                <div id="graph"></div>
+            </div>
+            <div class="logs">
+                <strong>Logs</strong>
+                <div class="logs-container">
+                    <ul id="logs-ul">
+                        {% for invader in invaders[::-1] %}
+                            {% if invader.users|length > 0 %}
+                                <li>
+                                    <small>#{{ invader.id }}</small> ajouté le {{ invader.date.strftime('%d/%m/%Y') }} par <a href="{{ url_for('user_profile', username = invader.users[0].name) }}">
+                                        {{ invader.users[0].name }}
+                                    </a>.
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+                    </ul>
+                    <button id="loadmore-btn">Charger plus...</button>
+                </div>
+            </div>
         </div>
 
         <script src="{{ url_for('static', filename='mapping.js') }}"></script>
+        <script src="{{ url_for('static', filename='loadmore_logs.js') }}"></script>
         <script>
             const range = (start, end, step = 1) => {
                 let result = [];
@@ -32,7 +51,7 @@
                 const api = new VaderAPI();
                 const mapData = await api.getMapData();
 
-                const statsEl = document.getElementById('stats');
+                const statsEl = document.getElementById('graph');
 
                 const dates = mapData.invaders
                     .sort((a, b) => { 

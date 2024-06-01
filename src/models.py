@@ -2,13 +2,22 @@ from flask_login import UserMixin
 
 from . import db
 
-from typing import List
+from typing import Literal
 from datetime import datetime
 
 users_invaders = db.Table('users_invaders',
     db.Column('invader_id', db.Integer, db.ForeignKey('invaders.id')),
     db.Column('user_id', db.Integer, db.ForeignKey('users.id'))
 )
+
+def match_state(state: Literal[0, 1, 2]) -> str:
+    match state:
+        case 1:
+            return 'Nonexistent'
+        case 2:
+            return 'Destroyed'
+        case _:
+            return 'Existent'
 
 class Invader(db.Model):
     __tablename__ = 'invaders'
@@ -17,7 +26,7 @@ class Invader(db.Model):
     lat: float = db.Column(db.Float, nullable = False)
     lng: float = db.Column(db.Float, nullable = False)
     date: datetime = db.Column(db.DateTime, default = datetime.now, nullable = False)
-    exists: bool = db.Column(db.Boolean, nullable = False, server_default = '1')
+    state: int = db.Column(db.Integer, nullable = False, server_default = '0') # 0 if existent, 1 if non-existent, 2 if destroyed.
 
     def as_json(self) -> dict:
         return {**self.as_json_norel(), **{
@@ -30,11 +39,11 @@ class Invader(db.Model):
             'lat': self.lat,
             'lng': self.lng,
             'date': self.date.isoformat(),
-            'exists': self.exists
+            'state': self.state
         }
 
     def __repr__(self) -> str:
-        return f'Invader(lat: {self.lat}, lng: {self.lng}, date: {self.date.isoformat()}, exists: {self.exists})'
+        return f'Invader(lat: {self.lat}, lng: {self.lng}, date: {self.date.isoformat()}, state: {match_state(self.state)})'
 
 class User(db.Model, UserMixin):
     __tablename__ = 'users'
