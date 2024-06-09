@@ -10,8 +10,7 @@ class VaderAPI {
     }
 
     async _get(endpoint, payload) {
-        return (await fetch(endpoint + '/?' + (new URLSearchParams(payload)).toString(), 
-            {
+        return (await fetch(endpoint + '/?' + (new URLSearchParams(payload)).toString(), {
             method: 'GET'
         })).json();
     }
@@ -32,6 +31,16 @@ class VaderAPI {
 
     async getMapData() {
         return await this._get(this.base + 'map');
+    }
+
+    async getInvaderImage(city, inv_id) {
+        return await this._get(
+            this.base + 'get-invader-image',
+            {
+                city: city,
+                inv_id: inv_id
+            }
+        )
     }
 
     async doesNotExist(lat, lng, state) {
@@ -64,12 +73,14 @@ class VaderAPI {
         )
     }
 
-    async addInvader(lat, lng) {
+    async addInvader(lat, lng, city, inv_id) {
         await this._post(
             this.base + 'add-invader',
             { 
                 lat: lat, 
-                lng: lng 
+                lng: lng,
+                city: city,
+                inv_id: inv_id
             }
         )
     }
@@ -110,7 +121,8 @@ class VaderMap {
             brokenInvader: IMG_PATH + 'invader-logo-broken.png',
             brokenInvaderWhite: IMG_PATH + 'invader-logo-white-broken.png',
             inexistentInvader: IMG_PATH + 'invader-logo-inexistent.png',
-            inexistentInvaderWhite: IMG_PATH + 'invader-logo-white-inexistent.png'
+            inexistentInvaderWhite: IMG_PATH + 'invader-logo-white-inexistent.png',
+            redInvaderDebug: IMG_PATH + 'invader-logo-red.png'
         }
 
         this.pointer = L.icon({
@@ -148,6 +160,11 @@ class VaderMap {
             iconSize: [40, 40]
         })
 
+        this.redInvaderDebugIcon = L.icon({
+            iconUrl: this.icons.redInvaderDebug,
+            iconSize: [40, 40]
+        })
+
         this.data = null;
     }
 
@@ -170,36 +187,99 @@ class VaderMap {
         this._initClusters();
         this._initGeoLoc(fitBounds);
 
+        
         if(this.data) {
             this.data.invaders.forEach(async invader => {
                 await this.addInvaderMarker(invader.lat, invader.lng);
             });
+
+            /* 
+            --------- USE THE CODE BELLOW IF YOU HAVE REPLACEMENT DATA --------- 
+            Replacement data is a file that contains informations about invaders which coordinates are to be changed in the following format :
+            [
+                ...,
+                {
+                    "city": "PA", # The city code of the invader
+                    "id": 122, # The id
+                    "current_coords": [ # The coordinates currently in your database
+                        ..., # lat
+                        ...  # lng
+                    ],
+                    "new_coords": [ # The coordinates that it will be changed to
+                        ...,
+                        ...
+                    ]
+                },
+                ...
+            ]
+            --------------------------------------------------------------------
+            */
+
+            /*
+            let replacementsData = (await fetch('./replacements.json')).json()
+            (await replacementsData).replacements.forEach(replacement => {
+                L.polyline(
+                    [replacement.current_coords, replacement.new_coords], 
+                    {color: 'black'}
+                ).addTo(this.map);
+
+                L.circle(replacement.current_coords, { radius: 0.00015 }).addTo(this.map);
+
+                let newInvader = replacement.new_coords;
+                let spaceInvMarker = L.marker(newInvader, { icon: this.redInvaderDebugIcon });
+                this.addMarkerToCluster(spaceInvMarker);
+                this.activeMarkers.push(spaceInvMarker);
+            }) 
+            */
         }
 
-        /* let gl = L.maplibreGL({
-            style: 'https://tiles.stadiamaps.com/styles/alidade_smooth_dark.json',
-            attribution: '',
-            maxZoom: 22
-        }).addTo(this.map); */
-
         L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png', 
-            // attribution: '&copy; <a href="https://stadiamaps.com/">Stadia Maps</a>, &copy; <a href="https://openmaptiles.org/">OpenMapTiles</a> &copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
+            /* { attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors' } */
         ).addTo(this.map);
 
-
         const mapClick = (e) => {
-            if(confirm(`Confirmer l'ajout de SI n°${this.data.invaders.length + 1} ?`)) {
+            if(confirm(`Confirmer l'ajout de SI n°${this.data.invaders.length + 1} ?\n Quel est son identifiant ?`)) {
                 let latLng = e.latlng;
-                this.addInvader(latLng.lat, latLng.lng);
+                let city = null;
+                let inv_id = null;
+                this.addInvader(latLng.lat, latLng.lng, city, inv_id);
+            }
+        }
+
+        const updateLatLngText = (e) => {
+            const latEl = document.getElementById('lat-value');
+            const lngEl = document.getElementById('lng-value');
+
+            const latLng = e.latlng;
+
+            if(latEl && lngEl) {
+                latEl.innerHTML = latLng.lat;
+                lngEl.innerHTML = latLng.lng;
+            }
+        }
+
+        const loadInvaderImage = async (e) => {
+            const invaderMarker = e.popup._source;
+            const latLng = invaderMarker._latlng;
+            const invader = this.getInvaderData(latLng.lat, latLng.lng);
+
+            if (invader.city && invader.inv_id) {
+                const invaderImage = (await this.api.getInvaderImage(invader.city, invader.inv_id)).img;
+                console.log(invaderImage)
+                const popUpElement = invaderMarker.getPopup().getContent();
+                popUpElement.querySelector('.invader-img').setAttribute('src', invaderImage);
+                invaderMarker.setPopupContent(popUpElement);
             }
         }
 
         this.map.on('click', mapClick);
+        this.map.on('mousemove', updateLatLngText)
+        this.map.on('popupopen', loadInvaderImage)
     }
 
     _initClusters() {
         this.markerClusterGroup = L.markerClusterGroup({
-            disableClusteringAtZoom: 18,
+            disableClusteringAtZoom: 18, /* 19 to cluster even at maximum zoom (18 otherwise). */
             iconCreateFunction: (cluster) => {
                 let dark = cluster.getAllChildMarkers().some(marker => {
                     return marker.getIcon() === this.otherInvaderIcon
@@ -279,8 +359,8 @@ class VaderMap {
         }
     }
 
-    async addInvader(lat, lng) {
-        await this.api.addInvader(lat, lng);
+    async addInvader(lat, lng, city, inv_id) {
+        await this.api.addInvader(lat, lng, city, inv_id);
         await this.reloadData();
         await this.addInvaderMarker(lat, lng);
     }
@@ -301,7 +381,7 @@ class VaderMap {
     }
 
     async updateClaimState(lat, lng, marker) {
-        const claimed = await this.api.claimInvader(lat, lng);
+        await this.api.claimInvader(lat, lng);
         await this.updateInvader(lat, lng, marker);
     }
 
@@ -350,11 +430,23 @@ class VaderMap {
 
         const formatedUsers = invader.users.map(user => `<li>${user.name}</li>`).join('');
         const date = new Date(invader.date);
+
+        let invaderName = 'Unnamed';
+
+        if (invader.city && invader.inv_id) {
+            const city = invader.city;
+            const inv_id = invader.inv_id
+            invaderName = `${city}_${inv_id}`;
+        }
+
+        const invaderNum = this.data.invaders.indexOf(invader) + 1 // This is NOT the invader's ID, just it's number of appearence.
+
         date.setHours(date.getHours() + 2);
         let invaderContainer = document.createElement('div');
         invaderContainer.classList.add('invader-marker');
         invaderContainer.innerHTML = `
-            <p class="invader-name">n°${this.data.invaders.indexOf(invader) + 1} <span style="color: gray; font-size: 10px;">(#${invader.id})</span></p>
+            <p class="invader-name">${invaderName} <span style="color: gray; font-size: 10px;">(#${invaderNum})</span></p>
+            <img class="invader-img" src=""></img>
             <p>Trouvé par :</p>
             <ul>
                 ${formatedUsers}

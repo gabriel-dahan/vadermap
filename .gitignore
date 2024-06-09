@@ -5,3 +5,8 @@ instance/
 package-lock.json
 __pycache__/
 migrations/
+
+# Auto replacements with cheating data
+auto_replacements.py
+cheatinvaders.json
+replacements.json

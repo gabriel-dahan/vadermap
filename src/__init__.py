@@ -7,6 +7,7 @@ from passlib.hash import sha256_crypt
 from dotenv import dotenv_values
 import os
 
+
 CONF = dotenv_values('.env')
 
 __app__ = Flask(
@@ -34,8 +35,10 @@ def load_user(user_id):
     return User.query.filter_by(id = user_id).first()
 
 from .data_loader import MapData
-
 vmap = MapData()
+
+from .invaders_img_data import ImagesScraper
+scraper = ImagesScraper()
 
 @__app__.route('/')
 def home():
@@ -146,7 +149,6 @@ def invader_does_not_exist():
     lat = data.get('lat')
     lng = data.get('lng')
     state = data.get('state')
-    print(type(state))
 
     if not lat or not lng:
         return jsonify({
@@ -162,13 +164,15 @@ def add_invader():
     data = request.get_json()
     lat = data.get('lat')
     lng = data.get('lng')
+    city = data.get('city')
+    inv_id = data.get('inv_id')
 
     if not lat or not lng:
         return jsonify({
             'error': 'Missing one argument.'
         })
     
-    vmap.add_invader(lat, lng)
+    vmap.add_invader(lat, lng, city, inv_id)
     return jsonify({
         'message': 'Invader added successfuly'
     })
@@ -214,5 +218,21 @@ def get_user():
     return jsonify({
         'user': user.as_json()
     })
+
+@__app__.route('/api/get-invader-image', methods = ['GET'])
+def get_invader_image():
+    data = request.args
+
+    city = data.get('city')
+    inv_id = data.get('inv_id')
+
+    if not (city and inv_id):
+        return jsonify({
+            'error': 'Missing parameters (city and inv_id are required).'
+        })
+
+    inv_id = int(inv_id)
+
+    return jsonify({ 'img' : scraper.get_image_link(city, inv_id) })
 
 from .models import Invader, User

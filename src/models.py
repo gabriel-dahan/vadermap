@@ -25,6 +25,11 @@ class Invader(db.Model):
     id: int = db.Column(db.Integer, primary_key = True)
     lat: float = db.Column(db.Float, nullable = False)
     lng: float = db.Column(db.Float, nullable = False)
+
+    # Identification (e.g. PA_120 -> city : PA ; inv_id : 120)
+    inv_id: int = db.Column(db.Integer, nullable = True)
+    city: str = db.Column(db.String(5), nullable = True)
+
     date: datetime = db.Column(db.DateTime, default = datetime.now, nullable = False)
     state: int = db.Column(db.Integer, nullable = False, server_default = '0') # 0 if existent, 1 if non-existent, 2 if destroyed.
 
@@ -38,12 +43,14 @@ class Invader(db.Model):
             'id': self.id,
             'lat': self.lat,
             'lng': self.lng,
+            'inv_id': self.inv_id,
+            'city': self.city,
             'date': self.date.isoformat(),
             'state': self.state
         }
 
     def __repr__(self) -> str:
-        return f'Invader(lat: {self.lat}, lng: {self.lng}, date: {self.date.isoformat()}, state: {match_state(self.state)})'
+        return f'Invader(lat: {self.lat}, lng: {self.lng}, invader_name: {self.city}_{self.inv_id}, date: {self.date.isoformat()}, state: {match_state(self.state)})'
 
 class User(db.Model, UserMixin):
     __tablename__ = 'users'

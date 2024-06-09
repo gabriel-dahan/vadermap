@@ -40,10 +40,12 @@ class MapData:
             db.session.commit()
         return None
 
-    def add_invader(self, lat: float, lng: float) -> dict:
+    def add_invader(self, lat: float, lng: float, city: str, inv_id: int) -> dict:
         new_invader = Invader(
             lat = lat,
-            lng = lng
+            lng = lng,
+            city = city,
+            inv_id = inv_id
         )
         db.session.add(new_invader)
         

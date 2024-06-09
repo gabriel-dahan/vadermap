@@ -27,6 +27,21 @@
     max-height: calc(100vh - 60px);
 }
 
+.coordinates {
+    z-index: 499;
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    align-items: center;
+    bottom: 0;
+    margin: 15px;
+}
+
+.coordinates > p {
+    font-size: 14px;
+}
+
 .space-invaders > p {
     color: #fff;
     text-align: center;
