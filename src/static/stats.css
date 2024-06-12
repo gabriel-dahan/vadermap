@@ -49,13 +49,22 @@ body {
     cursor: pointer;
 }
 
-.container > .logs > .logs-container > ul > li > a {
+#logs-ul {
+    padding: 30px;
+}
+
+#logs-ul > li > a {
     color: #2fd44b;
     text-decoration: none;
 }
 
 #graph {
-    display: flex;
     width: 700px;
     height: 500px;
+}
+
+@media screen and (max-width: 745px) {
+    #graph {
+        width: 425px;
+    }
 }

@@ -17,6 +17,7 @@
                 <strong>Statistiques</strong>
                 <div id="graph"></div>
             </div>
+            <hr>
             <div class="logs">
                 <strong>Logs</strong>
                 <div class="logs-container">
@@ -24,7 +25,12 @@
                         {% for invader in invaders[::-1] %}
                             {% if invader.users|length > 0 %}
                                 <li>
-                                    <small>#{{ invader.id }}</small> ajouté le {{ invader.date.strftime('%d/%m/%Y') }} par <a href="{{ url_for('user_profile', username = invader.users[0].name) }}">
+                                    {% if invader.inv_id %}
+                                        <small>{{ invader.city }}_{{ invader.inv_id }}</small>
+                                    {% else %}
+                                        <small>NN (#{{ invader.id }})</small>
+                                    {% endif %} 
+                                    ajouté le {{ invader.date.strftime('%d/%m/%Y') }} par <a href="{{ url_for('user_profile', username = invader.users[0].name) }}">
                                         {{ invader.users[0].name }}
                                     </a>.
                                 </li>

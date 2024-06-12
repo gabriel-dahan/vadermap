@@ -60,6 +60,12 @@ body {
     color: #ff5454;
 }
 
+.container > small {
+    margin: 0 10px;
+    text-align: center;
+    font-size: 12px;
+}
+
 .container > .invaders {
     display: grid;
     gap: 10px;
@@ -79,7 +85,13 @@ body {
     justify-content: center;
     border-radius: 5px;
     padding: 5px;
+
+    width: 39px;
     aspect-ratio: 1;
+}
+
+.container > .invaders > small {
+    font-size: 12px;
 }
 
 .container > .invaders > a > div.active {

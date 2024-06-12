@@ -54,6 +54,14 @@ class MapData:
         db.session.commit()
         return new_invader.as_json()
 
+    def update_invader(self, lat: float, lng: float, city: str, inv_id: int) -> dict:
+        invader = Invader.query.filter_by(lat = lat, lng = lng).first()
+        invader.city = city
+        invader.inv_id = inv_id
+
+        db.session.commit()
+        return invader.as_json()
+
     def delete_invader(self, lat: float, lng: float) -> Union[dict, None]:
         if invader := Invader.query.filter(
             (Invader.lat == lat) & (Invader.lng == lng)

@@ -89,6 +89,18 @@ class VaderAPI {
         )
     }
 
+    async updateInvader(lat, lng, city, inv_id) {
+        await this._post(
+            this.base + 'update-invader',
+            { 
+                lat: lat, 
+                lng: lng,
+                city: city,
+                inv_id: inv_id
+            }
+        )
+    }
+
     async deleteInvader(marker) {
         const latLng = marker.getLatLng();
         await this._post(
@@ -274,7 +286,7 @@ class VaderMap {
 
                 const maxId = this.cities[rawCity].invaders;
                 const cityName = this.cities[rawCity].name;
-                if(inv_id > maxId || 0 >= inv_id) {
+                if(inv_id > maxId || inv_id < 0) {
                     alert(`Cet identifiant est supérieur à l\'identifiant maximal pour cette région (${maxId} à ${cityName}) ou inférieur à 1.`)
                 } else {
                     this.addInvader(latLng.lat, latLng.lng, city, inv_id);
@@ -493,6 +505,11 @@ class VaderMap {
         await this.updateInvader(lat, lng, marker);
     }
 
+    async updateCityId(lat, lng, marker, city, inv_id) {
+        await this.api.updateInvader(lat, lng, city, inv_id);
+        await this.updateInvader(lat, lng, marker);
+    }
+
     hasInvader(user, invader) {
         if(invader.users.map(obj => obj.id).includes(user.id)) {
             return true;
@@ -534,7 +551,7 @@ class VaderMap {
         const formatedUsers = invader.users.map(user => `<li>${user.name}</li>`).join('');
         const date = new Date(invader.date);
 
-        let invaderName = 'Unnamed';
+        let invaderName = 'Non nommé';
 
         if (invader.city && invader.inv_id) {
             const city = invader.city;
@@ -548,7 +565,6 @@ class VaderMap {
         let invaderContainer = document.createElement('div');
         invaderContainer.classList.add('invader-marker');
         invaderContainer.innerHTML = `
-            <p class="invader-name">${invaderName} <span style="color: gray; font-size: 10px;">(#${invaderNum})</span></p>
             <img class="invader-img" src=""></img>
             <p>Trouvé par :</p>
             <ul>
@@ -557,6 +573,50 @@ class VaderMap {
             <small>${date.toLocaleString()}</small>
             <small>${this.getFormatedDeltaTime(date.toISOString())}</small>
         `;
+
+        let nameChangeBtn = document.createElement('button');
+        nameChangeBtn.classList.add('name-change-btn');
+        nameChangeBtn.innerHTML = `<strong class="name-change">${invaderName}</strong> <span style="color: gray; font-size: 10px;">(#${invaderNum})</span>`;
+        nameChangeBtn.style.background = 'transparent';
+        nameChangeBtn.style.border = 'none';
+        nameChangeBtn.style.cursor = 'pointer';
+        nameChangeBtn.onclick = async () => { 
+            let optionsString = '';
+            Object.keys(this.cities).forEach(cityCode => {
+                let selected = cityCode == invader.city ? 'selected' : 'PA';
+                optionsString += `<option value="${cityCode}" ${selected}>${cityCode}</option>`
+            });
+            let idDefaultValue = invader.inv_id ? invader.inv_id : 0;
+
+            let validate = await this.confirmationModal(
+                `
+                    <strong>Modifier l'invader ${invader.city}_${invader.inv_id} ?</strong>
+                    <div class="inputs">
+                        <select id="invader-city">${optionsString}</select>
+                        <input id="invader-id" type="number" value="${idDefaultValue}">
+                    </div>
+                    <small>Spécifier un identifiant permet d'ajouter automatiquement une image.</small>
+                `, 
+                ['invader-city', 'invader-id']
+            )
+
+            if(validate) {
+                let rawInvId = validate['invader-id'];
+                let rawCity = validate['invader-city'];
+                let inv_id = rawInvId ? Number(rawInvId) : null;
+                let city = inv_id ? rawCity : null; // Not null only if inv_id is valid.
+
+                const maxId = this.cities[rawCity].invaders;
+                const cityName = this.cities[rawCity].name;
+                if(inv_id > maxId || inv_id < 0) {
+                    alert(`Cet identifiant est supérieur à l\'identifiant maximal pour cette région (${maxId} à ${cityName}) ou inférieur à 1.`)
+                } else {
+                    this.updateCityId(lat, lng, spaceInvMarker, city, inv_id);
+                }
+            }
+        };
+
+        invaderContainer.insertBefore(nameChangeBtn, invaderContainer.firstChild);
 
         // ----- Upper Buttons ----- //
 

@@ -5,8 +5,6 @@ from flask_migrate import Migrate
 
 from passlib.hash import sha256_crypt
 from dotenv import dotenv_values
-import os
-
 
 CONF = dotenv_values('.env')
 
@@ -40,6 +38,8 @@ vmap = MapData()
 from .invaders_img_data import ImagesScraper
 scraper = ImagesScraper()
 
+from .jinja2_external import sort_with_none
+
 @__app__.route('/')
 def home():
     return render_template('index.html', users = User.query.all())
@@ -54,12 +54,11 @@ def map():
 def my_profile():
     return redirect(url_for('user_profile', username = current_user.name))
 
-
 @__app__.route('/user/<username>')
 def user_profile(username: str):
     user = User.query.filter_by(name = username).first()
     exists = bool(user)
-    return render_template('profile.html', user = user, exists = exists, invaders = Invader.query.all())
+    return render_template('profile.html', user = user, exists = exists, invaders = Invader.query.all(), sort_with_none = sort_with_none)
 
 from .forms import LoginForm, RegistrationForm, EditProfileForm
 
@@ -173,6 +172,24 @@ def add_invader():
         })
     
     vmap.add_invader(lat, lng, city, inv_id)
+    return jsonify({
+        'message': 'Invader added successfuly'
+    })
+
+@__app__.route('/api/update-invader', methods = ['POST'])
+def update_invader():
+    data = request.get_json()
+    lat = data.get('lat')
+    lng = data.get('lng')
+    city = data.get('city')
+    inv_id = data.get('inv_id')
+
+    if not lat or not lng:
+        return jsonify({
+            'error': 'Missing one argument.'
+        })
+    
+    vmap.update_invader(lat, lng, city, inv_id)
     return jsonify({
         'message': 'Invader added successfuly'
     })

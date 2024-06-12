@@ -23,13 +23,30 @@
                 {% endif %}
 
                 <p>{{ user.invaders|length }}/{{ invaders|length }} invaders</p>
+                <small>Les invaders marqués "NN" sont "Non Nommés" (leur identifiant n'a pas été spécifié).</small>
                 <div class="invaders">
-                    {% for invader in invaders|sort(attribute='id') %}
+                    {% for invader in sort_with_none(
+                        iterable = invaders, 
+                        attrs = ['city', 'inv_id'],
+                        none_attr = 'inv_id'
+                    ) %}
                         <a href="{{ url_for('map', lat=invader.lat, lng=invader.lng) }}">
                             {% if invader in user.invaders %}
-                                <div class="active">{{ loop.index }}</div>
+                                {% if invader.inv_id %}
+                                    <div class="active resize">
+                                        <p>{{ invader.city }}_{{ invader.inv_id }}</p>
+                                    </div>
+                                {% else %}
+                                    <div class="active">NN</div>
+                                {% endif %}
                             {% else %}
-                                <div>{{ loop.index }}</div>
+                                {% if invader.inv_id %}
+                                    <div class="resize">
+                                        <p>{{ invader.city }}_{{ invader.inv_id }}</p>
+                                    </div>
+                                {% else %}
+                                    <div>NN</div>
+                                {% endif %}
                             {% endif %}
                         </a>
                     {% endfor %}
@@ -39,4 +56,16 @@
             <p>Cet utilisateur n'existe pas...</p>
         {% endif %}
     </body>
+
+    <script>
+        const resizeElements = document.querySelectorAll('.resize');
+        resizeElements.forEach(resizeEl => {
+            const size = resizeEl.clientHeight - 5; // No need for height, every element is a square + padding.
+            const textEl = resizeEl.children[0];
+
+            let baseFontSize = 14;
+            let textElSize = textEl.textContent.length
+            textEl.style.fontSize = `${baseFontSize - textElSize + 4}px`;
+        });
+    </script>
 </html>
