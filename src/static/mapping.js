@@ -43,6 +43,10 @@ class VaderAPI {
         )
     }
 
+    async getCities() {
+        return await this._get(this.base + 'get-cities')
+    }
+
     async doesNotExist(lat, lng, state) {
         return await this._post(
             this.base + 'invader-does-not-exist',
@@ -172,6 +176,8 @@ class VaderMap {
         await this.reloadData();
         this.currentUser = (await this.api.getCurrentUser()).current_user;
 
+        this.cities = (await this.api.getCities()).cities;
+
         let bounds = new L.LatLngBounds(new L.LatLng(-90, -180), new L.LatLng(90, 180))
 
         this.map = L.map(this.mapId, {
@@ -237,12 +243,42 @@ class VaderMap {
             /* { attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors' } */
         ).addTo(this.map);
 
-        const mapClick = (e) => {
-            if(confirm(`Confirmer l'ajout de SI n°${this.data.invaders.length + 1} ?\n Quel est son identifiant ?`)) {
+        const mapClick = async e => {
+            
+            let optionsString = '';
+            Object.keys(this.cities).forEach(cityCode => {
+                let selected = cityCode == 'PA' ? 'selected' : '';
+                optionsString += `<option value="${cityCode}" ${selected}>${cityCode}</option>`
+            })
+
+            let validate = await this.confirmationModal(
+                `
+                    <strong>Ajouter l'invader n°${this.data.invaders.length + 1} ?</strong>
+                    <p>Si possible, donnez son identifiant (voir application flashInvaders&copy;) :</p>
+                    <div class="inputs">
+                        <select id="invader-city">${optionsString}</select>
+                        <input id="invader-id" type="number">
+                    </div>
+                    <small>Cela permet d'ajouter automatiquement une image</small>
+                `, 
+                ['invader-city', 'invader-id']
+            )
+
+            if(validate) {
                 let latLng = e.latlng;
-                let city = null;
-                let inv_id = null;
-                this.addInvader(latLng.lat, latLng.lng, city, inv_id);
+
+                let rawInvId = validate['invader-id'];
+                let rawCity = validate['invader-city'];
+                let inv_id = rawInvId ? Number(rawInvId) : null;
+                let city = inv_id ? rawCity : null; // Not null only if inv_id is valid.
+
+                const maxId = this.cities[rawCity].invaders;
+                const cityName = this.cities[rawCity].name;
+                if(inv_id > maxId || 0 >= inv_id) {
+                    alert(`Cet identifiant est supérieur à l\'identifiant maximal pour cette région (${maxId} à ${cityName}) ou inférieur à 1.`)
+                } else {
+                    this.addInvader(latLng.lat, latLng.lng, city, inv_id);
+                }
             }
         }
 
@@ -260,12 +296,11 @@ class VaderMap {
 
         const loadInvaderImage = async (e) => {
             const invaderMarker = e.popup._source;
-            const latLng = invaderMarker._latlng;
+            const latLng = invaderMarker.getLatLng();
             const invader = this.getInvaderData(latLng.lat, latLng.lng);
 
-            if (invader.city && invader.inv_id) {
+            if (invader && invader.city && invader.inv_id) {
                 const invaderImage = (await this.api.getInvaderImage(invader.city, invader.inv_id)).img;
-                console.log(invaderImage)
                 const popUpElement = invaderMarker.getPopup().getContent();
                 popUpElement.querySelector('.invader-img').setAttribute('src', invaderImage);
                 invaderMarker.setPopupContent(popUpElement);
@@ -275,6 +310,74 @@ class VaderMap {
         this.map.on('click', mapClick);
         this.map.on('mousemove', updateLatLngText)
         this.map.on('popupopen', loadInvaderImage)
+    }
+
+    confirmationModal(htmlContent, inputIdsToCheck) {
+        // Shows a Modal with html content 'htmlContent' and that executes function 'f' on success.
+
+        const modal = document.getElementById('modal');
+        const modalBlur = document.getElementById('modal-blur');
+
+        modal.innerHTML = htmlContent;
+        modal.classList.add('visible');
+        modalBlur.classList.add('visible');
+
+        /* CSS properties */
+        const changeSize = () => {
+            modal.style.left = `${window.innerWidth / 2 - modal.clientWidth / 2 - 20}px`;
+            modal.style.top = `${window.innerHeight / 2 - modal.clientHeight / 2 - 20}px`;
+        }
+        changeSize();
+        window.onresize = () => {
+            changeSize();
+        }
+        
+        /* Validate & Cancel buttons */
+        const btns = document.createElement('div');
+        btns.classList.add('btns');
+
+        const cancelBtn = document.createElement('button');
+        cancelBtn.innerHTML = '<strong>Annuler</strong>';
+        cancelBtn.style.background = 'transparent';
+        cancelBtn.style.border = 'none';
+        cancelBtn.style.cursor = 'pointer';
+        cancelBtn.children[0].style.color = 'red';
+
+        const validateBtn = document.createElement('button');
+        validateBtn.innerHTML = '<strong>Valider</strong>';
+        validateBtn.style.background = 'transparent';
+        validateBtn.style.border = 'none';
+        validateBtn.style.cursor = 'pointer';
+        validateBtn.children[0].style.color = '#0f4ca8';
+        
+        btns.appendChild(validateBtn);
+        btns.appendChild(cancelBtn);
+        
+        modal.appendChild(btns);
+
+        let closeModal = () => {
+            modal.innerHTML = '';
+            modal.classList.remove('visible');
+            modalBlur.classList.remove('visible');
+        }
+
+        return new Promise((resolve, _) => {
+            cancelBtn.onclick = () => { 
+                closeModal();
+                resolve(false);
+            };
+    
+            validateBtn.onclick = () => { 
+                let inputs = {}
+                inputIdsToCheck.forEach(input => {
+                    const inputEl = document.getElementById(input);
+                    inputs[input] = inputEl.value;
+                });
+
+                closeModal();
+                resolve(inputs);
+            };
+        });
     }
 
     _initClusters() {

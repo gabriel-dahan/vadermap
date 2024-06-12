@@ -121,6 +121,53 @@
     color: #fff;
 }
 
+#modal {
+    visibility: hidden;
+    display: none;
+    flex-direction: column;
+
+    z-index: 9999;
+    position: absolute;
+    background-color: #fff;
+}
+
+#modal.visible {
+    visibility: visible;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    border: 1px solid black;
+    border-radius: 20px;
+    padding: 20px;
+    margin: 20px;
+}
+
+#modal > .inputs {
+    display: flex;
+    justify-content: center;
+}
+
+#modal > .btns {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+}
+
+#modal > .btns > input {
+    width: fit-content;
+}
+
+#modal-blur {
+    z-index: 9998;
+    position: absolute;
+}
+
+#modal-blur.visible {
+    width: 100vw;
+    height: 100vh;
+    background-color: #8888884d;
+}
+
 @media screen and (max-width: 630px) {
     .space-invaders {
         width: 100%;

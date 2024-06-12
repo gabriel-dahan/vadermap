@@ -15,7 +15,7 @@ class ImagesScraper(object):
         self.soup = BeautifulSoup(raw_html, 'html.parser')
 
         print('Loading cities from \'invader-spotter.art\'...')
-        self.cities = self.__get_cities()
+        self.cities = self.get_cities()
         print(' --- Done.')
 
     def get_image_link(self, city_code: str, number: int) -> str:
@@ -26,7 +26,7 @@ class ImagesScraper(object):
         max_digit = max_digit + 1 if max_digit == 1 else max_digit
         return self.img_base_url.format(city_code, city_code, f'{number:0{max_digit}d}')
 
-    def __get_cities(self) -> dict[str, str]:
+    def get_cities(self) -> dict[str, str]:
         links: list[el.Tag] = self.soup.find_all('a', href = True)
         cities = {}
 

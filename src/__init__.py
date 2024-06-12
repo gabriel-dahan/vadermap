@@ -235,4 +235,8 @@ def get_invader_image():
 
     return jsonify({ 'img' : scraper.get_image_link(city, inv_id) })
 
+@__app__.route('/api/get-cities')
+def get_cities():
+    return jsonify({ 'cities' : scraper.get_cities() })
+
 from .models import Invader, User

@@ -19,6 +19,9 @@
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.1/MarkerCluster.Default.css" />
     </head>
     <body>
+        <div id="modal"></div>
+        <div id="modal-blur"></div>
+
         <div class="coordinates">
             <p class="lat">Lat : <span id="lat-value"></span></p>
             <p class="lng">Lng : <span id="lng-value"></span></p>
@@ -31,8 +34,6 @@
             </span>
             <p>Connecté en tant que <strong><a href="{{ url_for('my_profile') }}">{{ current_user.name }}</a></strong> ({{ current_user.invaders|length }}/{{ invaders|length }})</p>
         </div>
-
-        <div id="modal"></div>
 
         <script src="{{ url_for('static', filename='mapping.js') }}"></script>
         <script>
