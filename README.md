@@ -8,6 +8,8 @@ Voici à quoi ressemble le site lorqu'il est mis en ligne, accessible par l'admi
 
 ![](site.png)
 
+*Les images ne sont plus très à jour depuis la V2.1, mais l'apparence reste la même.*
+
 ## Installation
 
 ### Fichier `.env`
