@@ -40,6 +40,10 @@ body {
     gap: 25px;
 }
 
+.container > .search {
+    text-align: center;
+}
+
 .container > .account-btns > a {
     transition: 0.3s;
 }
@@ -71,7 +75,7 @@ body {
     gap: 10px;
     grid-template-columns: repeat(6, 1fr);
     overflow-y: scroll;
-    height: 400px;
+    max-height: 400px;
 }
 
 .container > .invaders > a {

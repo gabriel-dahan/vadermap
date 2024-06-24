@@ -1,8 +1,9 @@
-from flask import Flask, render_template, request, jsonify, redirect, url_for
+from flask import Flask, Blueprint, render_template, request, jsonify, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, current_user, login_user, login_required, logout_user
 from flask_migrate import Migrate
 
+from functools import wraps
 from passlib.hash import sha256_crypt
 from dotenv import dotenv_values
 
@@ -17,6 +18,9 @@ __app__ = Flask(
 __app__.config['SECRET_KEY'] = CONF['SECRET']
 
 __app__.url_map.strict_slashes = False
+
+# API ACCESS
+
 
 # DATABASE
 __app__.config['SQLALCHEMY_DATABASE_URI'] = CONF['DB_URI']
@@ -117,16 +121,33 @@ def logout():
     return redirect(url_for('map'))
 
 @__app__.route('/stats')
+@login_required
 def stats():
     return render_template('stats.html', invaders = Invader.query.all())
 
 ### API ###
 
-@__app__.route('/api/map')
+api = Blueprint('api', __name__)
+
+## SECURED API ##
+
+def secured_bp(bp: Blueprint, *args, **kwargs):
+    def decorator(f):
+        @bp.route(*args, **kwargs)
+        @login_required
+        @wraps(f)
+        def wrapper(*args, **kwargs):
+            return f(*args, **kwargs)
+        return f
+    return decorator
+
+secured_api = lambda *args, **kwargs : secured_bp(api, *args, **kwargs)
+
+@secured_api('/map')
 def get_map():
     return jsonify(vmap.all())
 
-@__app__.route('/api/claim-invader', methods = ['POST'])
+@secured_api('/claim-invader', methods = ['POST'])
 def claim_invader():
     data = request.get_json()
     lat = data.get('lat')
@@ -142,7 +163,7 @@ def claim_invader():
         'message': 'Invader claimed successfully.'
     })
 
-@__app__.route('/api/invader-does-not-exist', methods = ['POST'])
+@secured_api('/invader-does-not-exist', methods = ['POST'])
 def invader_does_not_exist():
     data = request.get_json()
     lat = data.get('lat')
@@ -158,7 +179,7 @@ def invader_does_not_exist():
         'message': 'Invader status changed successfully.'
     })
 
-@__app__.route('/api/add-invader', methods = ['POST'])
+@secured_api('/add-invader', methods = ['POST'])
 def add_invader():
     data = request.get_json()
     lat = data.get('lat')
@@ -176,7 +197,7 @@ def add_invader():
         'message': 'Invader added successfuly'
     })
 
-@__app__.route('/api/update-invader', methods = ['POST'])
+@secured_api('/update-invader', methods = ['POST'])
 def update_invader():
     data = request.get_json()
     lat = data.get('lat')
@@ -194,7 +215,7 @@ def update_invader():
         'message': 'Invader added successfuly'
     })
 
-@__app__.route('/api/delete-invader', methods = ['POST'])
+@secured_api('/delete-invader', methods = ['POST'])
 def delete_invader():
     data = request.get_json()
     lat = data.get('lat')
@@ -210,13 +231,13 @@ def delete_invader():
         'message': 'Invader removed successfully.'
     })
 
-@__app__.route('/api/current-user', methods = ['GET'])
+@secured_api('/current-user', methods = ['GET'])
 def get_current_user():
     return jsonify({
         'current_user': current_user.as_json() if current_user.is_authenticated else None
     })
 
-@__app__.route('/api/get-user', methods = ['GET'])
+@secured_api('/get-user', methods = ['GET'])
 def get_user():
     data = request.args
     name = data.get('user')
@@ -236,7 +257,7 @@ def get_user():
         'user': user.as_json()
     })
 
-@__app__.route('/api/get-invader-image', methods = ['GET'])
+@secured_api('/get-invader-image', methods = ['GET'])
 def get_invader_image():
     data = request.args
 
@@ -252,8 +273,10 @@ def get_invader_image():
 
     return jsonify({ 'img' : scraper.get_image_link(city, inv_id) })
 
-@__app__.route('/api/get-cities')
+@secured_api('/get-cities')
 def get_cities():
     return jsonify({ 'cities' : scraper.get_cities() })
+
+__app__.register_blueprint(api, url_prefix = '/api')
 
 from .models import Invader, User

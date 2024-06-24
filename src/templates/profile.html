@@ -5,6 +5,7 @@
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+        <link rel="stylesheet" href="{{ url_for('static', filename='scrollbar.css') }}">
         <link rel="stylesheet" href="{{ url_for('static', filename='profile.css') }}">
         <title>VaderProfile</title>
     </head>
@@ -24,20 +25,23 @@
 
                 <p>{{ user.invaders|length }}/{{ invaders|length }} invaders</p>
                 <small>Les invaders marqués "NN" sont "Non Nommés" (leur identifiant n'a pas été spécifié).</small>
+                <div class="search">Rechercher un invader : <input type="text" name="invader-search" id="invader-search"></input></div>
                 <div class="invaders">
                     {% for invader in sort_with_none(
                         iterable = invaders, 
                         attrs = ['city', 'inv_id'],
                         none_attr = 'inv_id'
                     ) %}
-                        <a href="{{ url_for('map', lat=invader.lat, lng=invader.lng) }}">
+                        <a class="invader" href="{{ url_for('map', lat=invader.lat, lng=invader.lng) }}">
                             {% if invader in user.invaders %}
                                 {% if invader.inv_id %}
                                     <div class="active resize">
                                         <p>{{ invader.city }}_{{ invader.inv_id }}</p>
                                     </div>
                                 {% else %}
-                                    <div class="active">NN</div>
+                                    <div class="active">
+                                        <p>NN</p>        
+                                    </div>
                                 {% endif %}
                             {% else %}
                                 {% if invader.inv_id %}
@@ -45,7 +49,9 @@
                                         <p>{{ invader.city }}_{{ invader.inv_id }}</p>
                                     </div>
                                 {% else %}
-                                    <div>NN</div>
+                                    <div>
+                                        <p>NN</p>
+                                    </div>
                                 {% endif %}
                             {% endif %}
                         </a>
@@ -58,14 +64,32 @@
     </body>
 
     <script>
-        const resizeElements = document.querySelectorAll('.resize');
-        resizeElements.forEach(resizeEl => {
-            const size = resizeEl.clientHeight - 5; // No need for height, every element is a square + padding.
-            const textEl = resizeEl.children[0];
+        document.addEventListener('DOMContentLoaded', () => {
+            const resizeElements = document.querySelectorAll('.resize');
+            resizeElements.forEach(resizeEl => {
+                const size = resizeEl.clientHeight - 5; // No need for height, every element is a square + padding.
+                const textEl = resizeEl.children[0];
 
-            let baseFontSize = 14;
-            let textElSize = textEl.textContent.length
-            textEl.style.fontSize = `${baseFontSize - textElSize + 4}px`;
+                let baseFontSize = 14;
+                let textElSize = textEl.textContent.length
+                textEl.style.fontSize = `${baseFontSize - textElSize + 4}px`;
+            });
+
+            const invaderSearchInput = document.getElementById('invader-search');
+            const listEl = document.querySelectorAll('.invader');
+    
+            invaderSearchInput.addEventListener('keyup', (e) => {
+                listEl.forEach(el => {
+                    let text = invaderSearchInput.value.toUpperCase();
+                    let nameParagraph = el.children[0].children[0];
+                    if(nameParagraph.textContent.includes(text) || text == '') {
+                        el.style.display = 'block';
+                    } else {
+                        el.style.display = 'none';
+                    }
+                })
+            });
         });
+
     </script>
 </html>

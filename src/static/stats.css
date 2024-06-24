@@ -21,15 +21,27 @@ body {
     align-items: center;
 }
 
+.container > header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.container > header > a > img {
+    width: 30px;
+    height: auto;
+}
+
 .container > .stats,
 .container > .logs {
     width: fit-content;
-    padding: 30px;
     display: flex;
     align-items: center;
     justify-content: center;
     flex-direction: column;
     gap: 25px;
+    overflow-x: hidden;
 }
 
 .container > .logs > .logs-container {

@@ -16,6 +16,8 @@ def match_state(state: Literal[0, 1, 2]) -> str:
             return 'Nonexistent'
         case 2:
             return 'Destroyed'
+        case 3:
+            return 'Damaged'
         case _:
             return 'Existent'
 
@@ -31,7 +33,7 @@ class Invader(db.Model):
     city: str = db.Column(db.String(5), nullable = True)
 
     date: datetime = db.Column(db.DateTime, default = datetime.now, nullable = False)
-    state: int = db.Column(db.Integer, nullable = False, server_default = '0') # 0 if existent, 1 if non-existent, 2 if destroyed.
+    state: int = db.Column(db.Integer, nullable = False, server_default = '0') # 0 if existent, 1 if non-existent, 2 if destroyed, 3 if damaged.
 
     def as_json(self) -> dict:
         return {**self.as_json_norel(), **{

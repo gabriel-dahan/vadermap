@@ -8,31 +8,51 @@
         <!-- PLOT.LY -->
         <script src="https://cdn.plot.ly/plotly-2.27.0.min.js" charset="utf-8"></script>
 
+        <link rel="stylesheet" href="{{ url_for('static', filename='scrollbar.css') }}">
         <link rel="stylesheet" href="{{ url_for('static', filename='stats.css') }}">
         <title>VaderStats</title>
     </head>
     <body>
         <div class="container">
-            <div class="stats">
+            <header>
+                <a href="{{ url_for('home') }}"><img src="{{ url_for('static', filename='img/invader-logo-white.png') }}" alt="Invader Logo"></a>
                 <strong>Statistiques</strong>
+            </header>
+            <div class="stats">
                 <div id="graph"></div>
             </div>
-            <hr>
             <div class="logs">
                 <strong>Logs</strong>
                 <div class="logs-container">
                     <ul id="logs-ul">
-                        {% for invader in invaders[::-1] %}
+                        {% for invader in invaders|reverse %}
                             {% if invader.users|length > 0 %}
                                 <li>
-                                    {% if invader.inv_id %}
-                                        <small>{{ invader.city }}_{{ invader.inv_id }}</small>
-                                    {% else %}
-                                        <small>NN (#{{ invader.id }})</small>
-                                    {% endif %} 
+                                    <a href="{{ url_for('map', lat=invader.lat, lng=invader.lng) }}">
+                                        <small>
+                                            {% if invader.inv_id %}
+                                                {{ invader.city }}_{{ invader.inv_id }}
+                                            {% else %}
+                                                NN (#{{ invader.id }})
+                                            {% endif %} 
+                                        </small>
+                                    </a>
                                     ajouté le {{ invader.date.strftime('%d/%m/%Y') }} par <a href="{{ url_for('user_profile', username = invader.users[0].name) }}">
                                         {{ invader.users[0].name }}
                                     </a>.
+                                </li>
+                            {% else %}
+                                <li>
+                                    <a href="{{ url_for('map', lat=invader.lat, lng=invader.lng) }}">
+                                        <small>
+                                            {% if invader.inv_id %}
+                                                {{ invader.city }}_{{ invader.inv_id }}
+                                            {% else %}
+                                                NN (#{{ invader.id }})
+                                            {% endif %} 
+                                        </small>
+                                    </a>
+                                    ajouté le {{ invader.date.strftime('%d/%m/%Y') }} <small>(Aucun utilisateur)</small>
                                 </li>
                             {% endif %}
                         {% endfor %}

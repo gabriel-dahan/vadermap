@@ -138,6 +138,8 @@ class VaderMap {
             brokenInvaderWhite: IMG_PATH + 'invader-logo-white-broken.png',
             inexistentInvader: IMG_PATH + 'invader-logo-inexistent.png',
             inexistentInvaderWhite: IMG_PATH + 'invader-logo-white-inexistent.png',
+            damagedInvader: IMG_PATH + 'invader-logo-damaged.png',
+            damagedInvaderWhite: IMG_PATH + 'invader-logo-white-damaged.png',
             redInvaderDebug: IMG_PATH + 'invader-logo-red.png'
         }
 
@@ -173,6 +175,16 @@ class VaderMap {
 
         this.inexistentInvaderWhiteIcon = L.icon({
             iconUrl: this.icons.inexistentInvaderWhite,
+            iconSize: [40, 40]
+        })
+
+        this.damagedInvaderIcon = L.icon({
+            iconUrl: this.icons.damagedInvader,
+            iconSize: [40, 40]
+        })
+
+        this.damagedInvaderWhiteIcon = L.icon({
+            iconUrl: this.icons.damagedInvaderWhite,
             iconSize: [40, 40]
         })
 
@@ -397,7 +409,9 @@ class VaderMap {
             disableClusteringAtZoom: 18, /* 19 to cluster even at maximum zoom (18 otherwise). */
             iconCreateFunction: (cluster) => {
                 let dark = cluster.getAllChildMarkers().some(marker => {
-                    return marker.getIcon() === this.otherInvaderIcon
+                    const latLng = marker.getLatLng();
+                    const invader = this.getInvaderData(latLng.lat, latLng.lng);
+                    return !this.hasInvader(this.currentUser, invader) && invader.state != 2 && invader.state != 1; // Un invader rend son groupe noir lorsqu'il n'est pas marqué par l'utilisateur ET qu'il n'est pas cassé ou introuvable (puisqu'un invader cassé/introuvable ne peut pas être obtenu).
                 });
                 const count = cluster.getChildCount();
                 let fontSize = 14;
@@ -523,6 +537,17 @@ class VaderMap {
         )[0];
     }
 
+    getStatusFrom(statusId) {
+        if(statusId == 0)
+            return 'Bon état'
+        else if(statusId == 1)
+            return 'Introuvable'
+        else if(statusId == 2)
+            return 'Détruit'
+        else
+            return 'Abîmé'
+    }
+
     async addInvaderMarker(lat, lng) {
         const invader = this.getInvaderData(lat, lng);
         let icon = this.otherInvaderIcon;
@@ -533,6 +558,8 @@ class VaderMap {
                 icon = this.inexistentInvaderWhiteIcon;
             } else if(invader.state == 2) {
                 icon = this.brokenInvaderWhiteIcon;
+            } else if(invader.state == 3) {
+                icon = this.damagedInvaderWhiteIcon;
             } else {
                 icon = this.invaderIcon;
             }
@@ -541,6 +568,8 @@ class VaderMap {
                 icon = this.inexistentInvaderIcon;
             } else if(invader.state == 2) {
                 icon = this.brokenInvaderIcon;
+            } else if(invader.state == 3) {
+                icon = this.damagedInvaderIcon;
             } else {
                 icon = this.otherInvaderIcon;
             }
@@ -644,29 +673,38 @@ class VaderMap {
 
         // ------------------------- //
 
-        // Lower Buttons (state change) //
+        // State Change Button //
 
-        let lowerBtns = document.createElement('div');
+        let stateChange = document.createElement('button');
+        stateChange.innerHTML = `<small>Etat de l'invader</small>`;
+        stateChange.style.background = 'transparent';
+        stateChange.style.border = 'none';
+        stateChange.style.cursor = 'pointer';
+        stateChange.children[0].style.color = 'red';
+        stateChange.onclick = async () => { 
+            let optionsString = ''
+            for (let i = 0; i <= 3; i++) {
+                let selected = invader.state == i ? 'selected' : ''
+                optionsString += `<option value="${i}" ${selected}>${this.getStatusFrom(i)}</option>`
+            }
+            let newState = await this.confirmationModal(
+                `
+                    <strong>Modifier le statut de ${invader.city}_${invader.inv_id}.</strong>
+                    <p>Choisissez l'état dans lequel est l'invader :</p>
+                    <div class="inputs">
+                        <select id="invader-status">${optionsString}</select>
+                    </div>
+                `, 
+                ['invader-status']
+            )
 
-        let existsBtn = document.createElement('button');
-        existsBtn.innerHTML = `<small>Introuvable</small>`;
-        existsBtn.style.background = 'transparent';
-        existsBtn.style.border = 'none';
-        existsBtn.style.cursor = 'pointer';
-        existsBtn.children[0].style.color = 'red';
-        existsBtn.onclick = async () => { await this.updateExistence(lat, lng, spaceInvMarker, 1); };
-        lowerBtns.appendChild(existsBtn);
+            if(newState) {
+                let status = Number(newState['invader-status'])
+                await this.updateExistence(lat, lng, spaceInvMarker, status); 
+            }
+        };
 
-        let destroyedBtn = document.createElement('button');
-        destroyedBtn.innerHTML = `<small>Détruit</small>`;
-        destroyedBtn.style.background = 'transparent';
-        destroyedBtn.style.border = 'none';
-        destroyedBtn.style.cursor = 'pointer';
-        destroyedBtn.children[0].style.color = 'red';
-        destroyedBtn.onclick = async () => { await this.updateExistence(lat, lng, spaceInvMarker, 2); };
-        lowerBtns.appendChild(destroyedBtn);
-
-        invaderContainer.appendChild(lowerBtns)
+        invaderContainer.appendChild(stateChange);
 
         // ------------------------- //
 
@@ -676,6 +714,7 @@ class VaderMap {
             let text = document.createElement('small');
             text.innerHTML = `Cet invader a été marqué comme '${state}', a-t-il été `;
             text.style.textAlign = 'center';
+            text.style.width = '200px';
 
             let removeStateBtn = document.createElement('button');
             removeStateBtn.innerHTML = `<small>retrouvé ?</small>`;
