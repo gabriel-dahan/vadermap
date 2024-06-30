@@ -1,44 +1,37 @@
-<!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+{% extends 'base.html' %}
 
-        <link rel="stylesheet" href="{{ url_for('static', filename='scrollbar.css') }}">
-        <link rel="stylesheet" href="{{ url_for('static', filename='index.css') }}">
-        <title>VaderHome</title>
-    </head>
-    <body>
-        <div class="container">
+{% block title %}VaderHome{% endblock %}
 
-            <div class="map-access">
-                <a href="{{ url_for('map') }}">Accéder à la carte</a>
-            </div>
-            {% if current_user.is_authenticated %}
-                <div class="profile">
-                    <a href="{{ url_for('my_profile') }}">Votre profil</a>
-                </div>
-            {% endif %}
-            <div class="stats">
-                <a href="{{ url_for('stats') }}">Ajouts & Stats</a>
-            </div>
-            <div class="collaborators">
-                <p>Collaborateurs : </p>
-                <ul>
-                    {% for user in users %}
-                        <li>
-                            <a href="{{ url_for('user_profile', username = user.name) }}">{{ user.name }} 
-                                {% if user.privileges and user.privileges >= 1 %}
-                                    (<span class="privileges">*</span>)
-                                {% endif %}
-                            </a>
-                        </li>
-                    {% endfor %}
-                </ul>
-            </div>
-            <p class="user-infos">Les utilisateurs marqués d'une étoile (<span class="privileges">*</span>) possèdent des privilèges spéciaux.</p>
-            <small>Ce projet est <a href="https://github.com/gabriel-dahan/vadermap/" target="_blank">opensource</a>.</small>
+{% block head %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='index.css') }}">
+{% endblock %}
+
+{% block content %}
+    <div class="map-access">
+        <a href="{{ url_for('map') }}">Accéder à la carte</a>
+    </div>
+    {% if current_user.is_authenticated %}
+        <div class="profile">
+            <a href="{{ url_for('my_profile') }}">Votre profil</a>
         </div>
-    </body>
-</html>
+    {% endif %}
+    <div class="stats">
+        <a href="{{ url_for('stats') }}">Ajouts & Stats</a>
+    </div>
+    <div class="collaborators">
+        <p>Collaborateurs : </p>
+        <ul>
+            {% for user in users %}
+                <li>
+                    <a href="{{ url_for('user_profile', username = user.name) }}">{{ user.name }} 
+                        {% if user.privileges and user.privileges >= 1 %}
+                            (<span class="privileges">*</span>)
+                        {% endif %}
+                    </a>
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+    <p class="user-infos">Les utilisateurs marqués d'une étoile (<span class="privileges">*</span>) possèdent des privilèges spéciaux.</p>
+    <small>Ce projet est <a href="https://github.com/gabriel-dahan/vadermap/" target="_blank">opensource</a>.</small>
+{% endblock %}

@@ -94,6 +94,10 @@ body {
     aspect-ratio: 1;
 }
 
+.container > .invaders > a > div > p {
+    font-size: 11px;
+}
+
 .container > .invaders > small {
     font-size: 12px;
 }

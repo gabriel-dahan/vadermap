@@ -2,6 +2,7 @@
 import bs4.element as el
 from bs4 import BeautifulSoup
 
+import time
 import math
 import requests
 
@@ -11,14 +12,16 @@ class ImagesScraper(object):
         self.base_url = 'https://invader-spotter.art/villes.php'
         self.img_base_url = 'https://invader-spotter.art/grosplan/{0}/{1}_{2}-grosplan.png'
 
+        self.new_request()
+
+    def new_request(self) -> None:
         raw_html = requests.get(self.base_url).text
         self.soup = BeautifulSoup(raw_html, 'html.parser')
-
-        print('Loading cities from \'invader-spotter.art\'...')
         self.cities = self.get_cities()
-        print(' --- Done.')
 
     def get_image_link(self, city_code: str, number: int) -> str:
+        self.new_request()
+
         city = self.cities.get(city_code)
         if not city:
             return ''

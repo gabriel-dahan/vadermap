@@ -1,106 +1,102 @@
-<!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+{% extends 'base.html' %}
 
-        <!-- PLOT.LY -->
-        <script src="https://cdn.plot.ly/plotly-2.27.0.min.js" charset="utf-8"></script>
+{% block title %}VaderStats{% endblock %}
 
-        <link rel="stylesheet" href="{{ url_for('static', filename='scrollbar.css') }}">
-        <link rel="stylesheet" href="{{ url_for('static', filename='stats.css') }}">
-        <title>VaderStats</title>
-    </head>
-    <body>
-        <div class="container">
-            <header>
-                <a href="{{ url_for('home') }}"><img src="{{ url_for('static', filename='img/invader-logo-white.png') }}" alt="Invader Logo"></a>
-                <strong>Statistiques</strong>
-            </header>
-            <div class="stats">
-                <div id="graph"></div>
-            </div>
-            <div class="logs">
-                <strong>Logs</strong>
-                <div class="logs-container">
-                    <ul id="logs-ul">
-                        {% for invader in invaders|reverse %}
-                            {% if invader.users|length > 0 %}
-                                <li>
-                                    <a href="{{ url_for('map', lat=invader.lat, lng=invader.lng) }}">
-                                        <small>
-                                            {% if invader.inv_id %}
-                                                {{ invader.city }}_{{ invader.inv_id }}
-                                            {% else %}
-                                                NN (#{{ invader.id }})
-                                            {% endif %} 
-                                        </small>
-                                    </a>
-                                    ajouté le {{ invader.date.strftime('%d/%m/%Y') }} par <a href="{{ url_for('user_profile', username = invader.users[0].name) }}">
-                                        {{ invader.users[0].name }}
-                                    </a>.
-                                </li>
-                            {% else %}
-                                <li>
-                                    <a href="{{ url_for('map', lat=invader.lat, lng=invader.lng) }}">
-                                        <small>
-                                            {% if invader.inv_id %}
-                                                {{ invader.city }}_{{ invader.inv_id }}
-                                            {% else %}
-                                                NN (#{{ invader.id }})
-                                            {% endif %} 
-                                        </small>
-                                    </a>
-                                    ajouté le {{ invader.date.strftime('%d/%m/%Y') }} <small>(Aucun utilisateur)</small>
-                                </li>
-                            {% endif %}
-                        {% endfor %}
-                    </ul>
-                    <button id="loadmore-btn">Charger plus...</button>
-                </div>
-            </div>
+{% block head %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='stats.css') }}">
+
+    <!-- PLOT.LY -->
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js" charset="utf-8"></script>
+{% endblock %}
+
+{% block content %}
+    <header>
+        <a href="{{ url_for('home') }}"><img src="{{ url_for('static', filename='img/invader-logo-white.png') }}" alt="Invader Logo"></a>
+        <strong>Statistiques</strong>
+    </header>
+    <div class="stats">
+        <div id="graph"></div>
+    </div>
+    <div class="logs">
+        <strong>Logs</strong>
+        <div class="logs-container">
+            <ul id="logs-ul">
+                {% for invader in invaders|reverse %}
+                    {% if invader.users|length > 0 %}
+                        <li>
+                            <a href="{{ url_for('map', lat=invader.lat, lng=invader.lng) }}">
+                                <small>
+                                    {% if invader.inv_id %}
+                                        {{ invader.city }}_{{ invader.inv_id }}
+                                    {% else %}
+                                        NN (#{{ invader.id }})
+                                    {% endif %} 
+                                </small>
+                            </a>
+                            ajouté le {{ invader.date.strftime('%d/%m/%Y') }} par <a href="{{ url_for('user_profile', username = invader.users[0].name) }}">
+                                {{ invader.users[0].name }}
+                            </a>.
+                        </li>
+                    {% else %}
+                        <li>
+                            <a href="{{ url_for('map', lat=invader.lat, lng=invader.lng) }}">
+                                <small>
+                                    {% if invader.inv_id %}
+                                        {{ invader.city }}_{{ invader.inv_id }}
+                                    {% else %}
+                                        NN (#{{ invader.id }})
+                                    {% endif %} 
+                                </small>
+                            </a>
+                            ajouté le {{ invader.date.strftime('%d/%m/%Y') }} <small>(Aucun utilisateur)</small>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+            </ul>
+            <button id="loadmore-btn">Charger plus...</button>
         </div>
+    </div>
+{% endblock %}
 
-        <script src="{{ url_for('static', filename='mapping.js') }}"></script>
-        <script src="{{ url_for('static', filename='loadmore_logs.js') }}"></script>
-        <script>
-            const range = (start, end, step = 1) => {
-                let result = [];
-                for (let i = start; i <= end; i += step) {
-                    result.push(i);
+{% block scripts %}
+    <script src="{{ url_for('static', filename='mapping.js') }}"></script>
+    <script src="{{ url_for('static', filename='loadmore_logs.js') }}"></script>
+    <script>
+        const range = (start, end, step = 1) => {
+            let result = [];
+            for (let i = start; i <= end; i += step) {
+                result.push(i);
+            }
+            return result;
+        };
+
+        (async () => { 
+            const api = new VaderAPI();
+            const mapData = await api.getMapData();
+
+            const statsEl = document.getElementById('graph');
+
+            const dates = mapData.invaders
+                .sort((a, b) => { 
+                    let dA = new Date(a.date);
+                    let dB = new Date(b.date);
+                    return dA - dB;
+                })
+                .map(invader => invader.date);
+
+            const data = [
+                {
+                    x: dates,
+                    y: range(1, dates.length),
+                    type: 'scatter'
                 }
-                return result;
+            ];
+
+            const layout = {
+                showlegend: false
             };
 
-            (async () => { 
-                const api = new VaderAPI();
-                const mapData = await api.getMapData();
-
-                const statsEl = document.getElementById('graph');
-
-                const dates = mapData.invaders
-                    .sort((a, b) => { 
-                        let dA = new Date(a.date);
-                        let dB = new Date(b.date);
-                        return dA - dB;
-                    })
-                    .map(invader => invader.date);
-
-                const data = [
-                    {
-                        x: dates,
-                        y: range(1, dates.length),
-                        type: 'scatter'
-                    }
-                ];
-
-                const layout = {
-                    showlegend: false
-                };
-
-                Plotly.newPlot(statsEl, data, layout, {staticPlot: true, responsive: true});
-            })();
-        </script>
-    </body>
-</html>
+            Plotly.newPlot(statsEl, data, layout, {staticPlot: true, responsive: true});
+        })();
+    </script>
+{% endblock %}

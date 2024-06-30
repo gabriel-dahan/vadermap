@@ -1,59 +1,57 @@
-<!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>VaderMap</title>
-        
-        <link rel="stylesheet" href="{{ url_for('static', filename='map.css') }}">
-        <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
+{% extends 'base.html' %}
 
-        <!-- LEAFLET -->
-        <link rel="stylesheet" href="{{ url_for('static', filename='node_modules/leaflet/dist/leaflet.css') }}" />
-        <script src="{{ url_for('static', filename='node_modules/leaflet/dist/leaflet.js') }}"></script>
+{% block title %}VaderMap{% endblock %}
 
-        <!-- LEAFLET - MARKERCLUSTERS -->
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.1/leaflet.markercluster.js"></script>
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.1/MarkerCluster.css" />
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.1/MarkerCluster.Default.css" />
-    </head>
-    <body>
-        <div id="modal"></div>
-        <div id="modal-blur"></div>
+{% block head %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='map.css') }}">
 
-        <div class="coordinates">
-            <p class="lat">Lat : <span id="lat-value"></span></p>
-            <p class="lng">Lng : <span id="lng-value"></span></p>
-        </div>
-        <div id="map"></div>
-        <div class="space-invaders">
-            <span class="title">
-                <h1><a href="{{ url_for('home') }}">VaderMap</a></h1>
-                <img src="{{ url_for('static', filename='img/invader-logo-white.png') }}" alt="Invader Logo">
-            </span>
-            <p>Connecté en tant que <strong><a href="{{ url_for('my_profile') }}">{{ current_user.name }}</a></strong> ({{ current_user.invaders|length }}/{{ invaders|length }})</p>
-        </div>
+    <!-- LEAFLET -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='node_modules/leaflet/dist/leaflet.css') }}" />
+    <script src="{{ url_for('static', filename='node_modules/leaflet/dist/leaflet.js') }}"></script>
 
-        <script src="{{ url_for('static', filename='mapping.js') }}"></script>
-        <script>
-            (async () => { 
-                const vaderMap = new VaderMap('map');
-                
-                const urlParams = new URLSearchParams(window.location.search);
-                const lat = urlParams.get('lat');
-                const lng = urlParams.get('lng');
-                
-                if(lat && lng) {
-                    await vaderMap.init(false) // 'false' prevents centering to the user's position instead of the invader (when geoloc is activated).
-                        .then(() => {
-                            vaderMap.centerToInvader(parseFloat(lat), parseFloat(lng));
-                            history.pushState({}, document.title, window.location.pathname);
-                        });
-                } else {
-                    await vaderMap.init();
-                }
-            })();
-        </script>
-    </body>
-</html>
+    <!-- LEAFLET - MARKERCLUSTERS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.1/leaflet.markercluster.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.1/MarkerCluster.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.1/MarkerCluster.Default.css" />
+{% endblock %}
+
+{% block ext_content %}
+    <div id="modal"></div>
+    <div id="modal-blur"></div>
+
+    <div class="coordinates">
+        <p class="lat">Lat : <span id="lat-value"></span></p>
+        <p class="lng">Lng : <span id="lng-value"></span></p>
+    </div>
+    <div id="map"></div>
+    <div class="space-invaders">
+        <span class="title">
+            <h1><a href="{{ url_for('home') }}">VaderMap</a></h1>
+            <img src="{{ url_for('static', filename='img/invader-logo-white.png') }}" alt="Invader Logo">
+        </span>
+        <p>Connecté en tant que <strong><a href="{{ url_for('my_profile') }}">{{ current_user.name }}</a></strong> ({{ current_user.invaders|length }}/{{ invaders|length }})</p>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    <script src="{{ url_for('static', filename='mapping.js') }}"></script>
+    <script>
+        (async () => { 
+            const vaderMap = new VaderMap('map');
+            
+            const urlParams = new URLSearchParams(window.location.search);
+            const lat = urlParams.get('lat');
+            const lng = urlParams.get('lng');
+            
+            if(lat && lng) {
+                await vaderMap.init(false) // 'false' prevents centering to the user's position instead of the invader (when geoloc is activated).
+                    .then(() => {
+                        vaderMap.centerToInvader(parseFloat(lat), parseFloat(lng));
+                        history.pushState({}, document.title, window.location.pathname);
+                    });
+            } else {
+                await vaderMap.init();
+            }
+        })();
+    </script>
+{% endblock %}

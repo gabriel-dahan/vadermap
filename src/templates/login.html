@@ -1,52 +1,49 @@
-<!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+{% extends 'base.html' %}
 
-        <link rel="stylesheet" href="{{ url_for('static', filename='forms.css') }}">
-        <title>VaderLogin</title>
-    </head>
-    <body>
-        <div class="form">
-            <h3>Login</h3>
-            <form method="POST" action="" novalidate>
-                {{ form.hidden_tag() }}
-                <legend>Connectez-vous ici...</legend>
-                <div class="form-fields">
-                    <div class="form-field">
-                        <p>{{ form.username.label }}</p>
-                        {{ form.username(id='form-user-name', _prevent_uppercase=True) }}
-                        {% if form.username.errors %}
-                            <div class="invalid">
-                                {% for error in form.username.errors %}
-                                    <span>{{ error }}</span>
-                                {% endfor %}
-                            </div>
-                        {% endif %}
-                    </div>
-                    <div class="form-field">
-                        <p>{{ form.password.label }}</p>
-                        {{ form.password }}
-                        {% if form.password.errors %}
-                            <div class="invalid">
-                                {% for error in form.password.errors %}
-                                    <span>{{ error }}</span>
-                                {% endfor %}
-                            </div>
-                        {% endif %}
-                    </div>
-                    <div class="submit">
-                        {{ form.submit }}
-                    </div>
+{% block title %}VaderLogin{% endblock %}
+
+{% block head %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='forms.css') }}">
+{% endblock %}
+
+{% block content %}
+    <div class="form">
+        <h3>Login</h3>
+        <form method="POST" action="" novalidate>
+            {{ form.hidden_tag() }}
+            <legend>Connectez-vous ici...</legend>
+            <div class="form-fields">
+                <div class="form-field">
+                    <p>{{ form.username.label }}</p>
+                    {{ form.username(id='form-user-name', _prevent_uppercase=True) }}
+                    {% if form.username.errors %}
+                        <div class="invalid">
+                            {% for error in form.username.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
                 </div>
-            </form>
-            <div class="account-exists-or-not">
-                <small>
-                    Vous n'avez pas de compte ? <a href="{{ url_for('signup') }}" class="hover-effect">Enregistrez-vous</a>
-                </small>
+                <div class="form-field">
+                    <p>{{ form.password.label }}</p>
+                    {{ form.password }}
+                    {% if form.password.errors %}
+                        <div class="invalid">
+                            {% for error in form.password.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="submit">
+                    {{ form.submit }}
+                </div>
             </div>
+        </form>
+        <div class="account-exists-or-not">
+            <small>
+                Vous n'avez pas de compte ? <a href="{{ url_for('signup') }}" class="hover-effect">Enregistrez-vous</a>
+            </small>
         </div>
-    </body>
-</html>
+    </div>
+{% endblock %}

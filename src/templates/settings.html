@@ -1,72 +1,63 @@
-<!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+{% extends 'form.html' %}
 
-        <link rel="stylesheet" href="{{ url_for('static', filename='forms.css') }}">
-        <title>VaderSettings</title>
-    </head>
-    <body>
-        <div class="form">
-            <h3>Paramètres - {{ current_user.name }}</h3>
-            <form method="POST" action="" novalidate>
-                {{ form.hidden_tag() }}
-                <legend>
-                    Vous voulez modifier certaines informations ? C'est ici :) <br>
-                    Laissez blanc pour ne pas changer
-                </legend>
-                <div class="form-fields">
-                    <div class="form-field">
-                        <p>{{ form.username.label }}</p>
-                        {{ form.username(id='form-username') }}
-                        {% if form.username.errors %}
-                            <div class="invalid">
-                                {% for error in form.username.errors %}
-                                    <span>{{ error }}</span>
-                                {% endfor %}
-                            </div>
-                        {% endif %}
+{% block title %}VaderSettings{% endblock %}
+
+{% block form %}
+    <h3>Paramètres - {{ current_user.name }}</h3>
+    <form method="POST" action="" novalidate>
+        {{ form.hidden_tag() }}
+        <legend>
+            Vous voulez modifier certaines informations ? C'est ici :) <br>
+            Laissez blanc pour ne pas changer
+        </legend>
+        <div class="form-fields">
+            <div class="form-field">
+                <p>{{ form.username.label }}</p>
+                {{ form.username(id='form-username') }}
+                {% if form.username.errors %}
+                    <div class="invalid">
+                        {% for error in form.username.errors %}
+                            <span>{{ error }}</span>
+                        {% endfor %}
                     </div>
-                    <div class="form-field">
-                        <p>{{ form.password.label }}</p>
-                        {{ form.password }}
-                        {% if form.password.errors %}
-                            <div class="invalid">
-                                {% for error in form.password.errors %}
-                                    <span>{{ error }}</span>
-                                {% endfor %}
-                            </div>
-                        {% endif %}
+                {% endif %}
+            </div>
+            <div class="form-field">
+                <p>{{ form.password.label }}</p>
+                {{ form.password }}
+                {% if form.password.errors %}
+                    <div class="invalid">
+                        {% for error in form.password.errors %}
+                            <span>{{ error }}</span>
+                        {% endfor %}
                     </div>
-                    <div class="form-field">
-                        <p>{{ form.new_password.label }}</p>
-                        {{ form.new_password }}
-                        {% if form.new_password.errors %}
-                            <div class="invalid">
-                                {% for error in form.new_password.errors %}
-                                    <span>{{ error }}</span>
-                                {% endfor %}
-                            </div>
-                        {% endif %}
+                {% endif %}
+            </div>
+            <div class="form-field">
+                <p>{{ form.new_password.label }}</p>
+                {{ form.new_password }}
+                {% if form.new_password.errors %}
+                    <div class="invalid">
+                        {% for error in form.new_password.errors %}
+                            <span>{{ error }}</span>
+                        {% endfor %}
                     </div>
-                    <div class="form-field">
-                        <p>{{ form.confirm_password.label }}</p>
-                        {{ form.confirm_password }}
-                        {% if form.confirm_password.errors %}
-                            <div class="invalid">
-                                {% for error in form.confirm_password.errors %}
-                                    <span>{{ error }}</span>
-                                {% endfor %}
-                            </div>
-                        {% endif %}
+                {% endif %}
+            </div>
+            <div class="form-field">
+                <p>{{ form.confirm_password.label }}</p>
+                {{ form.confirm_password }}
+                {% if form.confirm_password.errors %}
+                    <div class="invalid">
+                        {% for error in form.confirm_password.errors %}
+                            <span>{{ error }}</span>
+                        {% endfor %}
                     </div>
-                    <div class="submit">
-                        {{ form.submit }}
-                    </div>
-                </div>
-            </form>
+                {% endif %}
+            </div>
+            <div class="submit">
+                {{ form.submit }}
+            </div>
         </div>
-    </body>
-</html>
+    </form>
+{% endblock %}

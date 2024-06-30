@@ -1,70 +1,68 @@
-<!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+{% extends 'base.html' %}
 
-        <link rel="stylesheet" href="{{ url_for('static', filename='scrollbar.css') }}">
-        <link rel="stylesheet" href="{{ url_for('static', filename='profile.css') }}">
-        <title>VaderProfile</title>
-    </head>
-    <body>
-        {% if exists %}
-            <div class="container">
-                <div class="header">
-                    <a href="{{ url_for('home') }}"><img src="{{ url_for('static', filename='img/invader-logo-white.png') }}" alt="Invader Logo"></a>
-                    <h1>{{ user.name }}</h1>
-                </div>
-                {% if user.id == current_user.id %}
-                    <div class="account-btns">
-                        <a class="edit-profile" href="{{ url_for('profile_settings') }}">Modifier le profil</a> |
-                        <a class="logout" href="{{ url_for('logout') }}">Se déconnecter</a>
-                    </div>
-                {% endif %}
+{% block title %}VaderProfile{% endblock %}
 
-                <p>{{ user.invaders|length }}/{{ invaders|length }} invaders</p>
-                <small>Les invaders marqués "NN" sont "Non Nommés" (leur identifiant n'a pas été spécifié).</small>
-                <div class="search">Rechercher un invader : <input type="text" name="invader-search" id="invader-search"></input></div>
-                <div class="invaders">
-                    {% for invader in sort_with_none(
-                        iterable = invaders, 
-                        attrs = ['city', 'inv_id'],
-                        none_attr = 'inv_id'
-                    ) %}
-                        <a class="invader" href="{{ url_for('map', lat=invader.lat, lng=invader.lng) }}">
-                            {% if invader in user.invaders %}
-                                {% if invader.inv_id %}
-                                    <div class="active resize">
-                                        <p>{{ invader.city }}_{{ invader.inv_id }}</p>
-                                    </div>
-                                {% else %}
-                                    <div class="active">
-                                        <p>NN</p>        
-                                    </div>
-                                {% endif %}
-                            {% else %}
-                                {% if invader.inv_id %}
-                                    <div class="resize">
-                                        <p>{{ invader.city }}_{{ invader.inv_id }}</p>
-                                    </div>
-                                {% else %}
-                                    <div>
-                                        <p>NN</p>
-                                    </div>
-                                {% endif %}
-                            {% endif %}
-                        </a>
-                    {% endfor %}
-                </ul>
+{% block head %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='profile.css') }}">
+{% endblock %}
+
+{% block content %}
+    {% if exists %}
+        <div class="header">
+            <a href="{{ url_for('home') }}"><img src="{{ url_for('static', filename='img/invader-logo-white.png') }}" alt="Invader Logo"></a>
+            <h1>{{ user.name }}</h1>
+        </div>
+        {% if user.id == current_user.id %}
+            <div class="account-btns">
+                <a class="edit-profile" href="{{ url_for('profile_settings') }}">Modifier le profil</a> |
+                <a class="logout" href="{{ url_for('logout') }}">Se déconnecter</a>
             </div>
-        {% else %}
-            <p>Cet utilisateur n'existe pas...</p>
         {% endif %}
-    </body>
 
+        <p>{{ user.invaders|length }}/{{ invaders|length }} invaders</p>
+        <small>Les invaders marqués "NN" sont "Non Nommés" (leur identifiant n'a pas été spécifié).</small>
+        <div class="search">Rechercher un invader : <input type="text" name="invader-search" id="invader-search"></input></div>
+        <div class="invaders">
+            {% for invader in sort_with_none(
+                iterable = invaders, 
+                attrs = ['city', 'inv_id'],
+                none_attr = 'inv_id'
+            ) %}
+                <a class="invader" href="{{ url_for('map', lat=invader.lat, lng=invader.lng) }}">
+                    {% if invader in user.invaders %}
+                        {% if invader.inv_id %}
+                            <div class="active resize">
+                                <p>{{ invader.city }}_{{ invader.inv_id }}</p>
+                            </div>
+                        {% else %}
+                            <div class="active">
+                                <p>NN</p>        
+                            </div>
+                        {% endif %}
+                    {% else %}
+                        {% if invader.inv_id %}
+                            <div class="resize">
+                                <p>{{ invader.city }}_{{ invader.inv_id }}</p>
+                            </div>
+                        {% else %}
+                            <div>
+                                <p>NN</p>
+                            </div>
+                        {% endif %}
+                    {% endif %}
+                </a>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>Cet utilisateur n'existe pas...</p>
+    {% endif %}
+{% endblock %}
+
+{% block scripts %}
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            /* OLD VERSION (AUTO RESIZE), deleted because of performance issues.
+            
             const resizeElements = document.querySelectorAll('.resize');
             resizeElements.forEach(resizeEl => {
                 const size = resizeEl.clientHeight - 5; // No need for height, every element is a square + padding.
@@ -73,11 +71,11 @@
                 let baseFontSize = 14;
                 let textElSize = textEl.textContent.length
                 textEl.style.fontSize = `${baseFontSize - textElSize + 4}px`;
-            });
+            }); */
 
             const invaderSearchInput = document.getElementById('invader-search');
             const listEl = document.querySelectorAll('.invader');
-    
+
             invaderSearchInput.addEventListener('keyup', (e) => {
                 listEl.forEach(el => {
                     let text = invaderSearchInput.value.toUpperCase();
@@ -92,4 +90,5 @@
         });
 
     </script>
-</html>
+{% endblock %}
+

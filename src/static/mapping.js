@@ -113,8 +113,30 @@ class VaderAPI {
     }
 }
 
+const iOS = () => { // Returns true if the platform is iOS
+    return [
+      'iPad Simulator',
+      'iPhone Simulator',
+      'iPod Simulator',
+      'iPad',
+      'iPhone',
+      'iPod'
+    ].includes(navigator.platform)
+    // iPad on iOS 13 detection
+    || (navigator.userAgent.includes("Mac") && "ontouchend" in document)
+}
+
 class VaderMap {
     constructor(mapElementId, mapOrigin = [48.85895522569794, 2.3454093933105473], mapZoom = 12, maxZoom = 18) {
+
+        if(iOS()) {
+            this.iconSize = [30, 30];
+            this.pointerSize = [80, 80];
+        } else {
+            this.iconSize = [40, 40];
+            this.pointerSize = [100, 100];
+        }
+
         this.mapId = mapElementId;
         this.mapOrigin = mapOrigin;
         this.mapZoom = mapZoom;
@@ -145,52 +167,52 @@ class VaderMap {
 
         this.pointer = L.icon({
             iconUrl: this.icons.pointer,
-            iconSize: [100, 100]
+            iconSize: this.pointerSize
         });
 
         this.invaderIcon = L.icon({
             iconUrl: this.icons.invader,
-            iconSize: [40, 40]
+            iconSize: this.iconSize
         });
 
         this.otherInvaderIcon = L.icon({
             iconUrl: this.icons.otherInvader,
-            iconSize: [40, 40]
+            iconSize: this.iconSize
         });
 
         this.brokenInvaderIcon = L.icon({
             iconUrl: this.icons.brokenInvader,
-            iconSize: [40, 40]
+            iconSize: this.iconSize
         })
 
         this.brokenInvaderWhiteIcon = L.icon({
             iconUrl: this.icons.brokenInvaderWhite,
-            iconSize: [40, 40]
+            iconSize: this.iconSize
         })
 
         this.inexistentInvaderIcon = L.icon({
             iconUrl: this.icons.inexistentInvader,
-            iconSize: [40, 40]
+            iconSize: this.iconSize
         })
 
         this.inexistentInvaderWhiteIcon = L.icon({
             iconUrl: this.icons.inexistentInvaderWhite,
-            iconSize: [40, 40]
+            iconSize: this.iconSize
         })
 
         this.damagedInvaderIcon = L.icon({
             iconUrl: this.icons.damagedInvader,
-            iconSize: [40, 40]
+            iconSize: this.iconSize
         })
 
         this.damagedInvaderWhiteIcon = L.icon({
             iconUrl: this.icons.damagedInvaderWhite,
-            iconSize: [40, 40]
+            iconSize: this.iconSize
         })
 
         this.redInvaderDebugIcon = L.icon({
             iconUrl: this.icons.redInvaderDebug,
-            iconSize: [40, 40]
+            iconSize: this.iconSize
         })
 
         this.data = null;
