@@ -1,3 +1,5 @@
+**EDIT fin août 2024 : Après plus de deux mois sans aucune modification, le développement reprend plus ou moins activement, toutes les fonctionnalités vouées à être ajoutées dans la v2.3 sont spécifiées dans [TODO.md](./TODO.md).**
+
 # VaderMap
 
 Voici le code source d'un [site](https://vadermap.gabrieldahan.me/) que j'ai développé à destination d'un comité restreint, constitué d'une carte du monde, modifiée pour favoriser l'entraide de groupe autour de la recherche des [Space Invaders &copy;](https://www.space-invaders.com/world/) dans le monde entier. 
