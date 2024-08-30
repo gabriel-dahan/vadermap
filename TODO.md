@@ -1,6 +1,7 @@
 V2.3 :
-- Subtle change in style (bootstrap5 implementation).
-- Button to center to current position.
+- Finally a way to move invaders by naming new ones with the same ID !
+- Subtle change in web style (bootstrap5 implementation).
+- Button to center screen to current position.
 - Change static icon at current position.
 - Websocket server for live invaders.
 - Preferences for invaders states, ?marked, etc.
