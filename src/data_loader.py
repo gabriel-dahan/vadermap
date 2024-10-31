@@ -32,7 +32,7 @@ class MapData:
             return claimed
         return None
     
-    def invader_does_not_exist(self, lat: float, lng: float, state: Literal[0, 1, 2]) -> dict:
+    def invader_change_state(self, lat: float, lng: float, state: Literal[0, 1, 2]) -> dict:
         if current_user.is_authenticated and (invader := Invader.query.filter(
             (Invader.lat == lat) & (Invader.lng == lng)
         ).first()):
@@ -53,6 +53,14 @@ class MapData:
 
         db.session.commit()
         return new_invader.as_json()
+
+    def move_invader(self, lat: float, lng: float, new_lat: float, new_lng: float) -> dict:
+        invader: Invader = Invader.query.filter_by(lat = lat, lng = lng).first()
+        invader.lat = new_lat
+        invader.lng = new_lng
+
+        db.session.commit()
+        return invader.as_json()    
 
     def update_invader(self, lat: float, lng: float, city: str, inv_id: int) -> dict:
         invader = Invader.query.filter_by(lat = lat, lng = lng).first()

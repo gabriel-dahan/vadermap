@@ -3,35 +3,45 @@
 {% block title %}VaderHome{% endblock %}
 
 {% block head %}
-    <link rel="stylesheet" href="{{ url_for('static', filename='index.css') }}">
+    <!-- <link rel="stylesheet" href="{{ url_for('static', filename='index.css') }}"> -->
+    <style>
+        .privilege-char {
+            color: rgb(231, 120, 126);
+        }
+    </style>
 {% endblock %}
 
 {% block content %}
-    <div class="map-access">
-        <a href="{{ url_for('map') }}">Accéder à la carte</a>
+    <h2>VaderMap</h2>
+    <div class="head">
+        <button class="btn btn-primary" href="{{ url_for('map') }}">
+            Accéder à la carte
+        </button>
     </div>
-    {% if current_user.is_authenticated %}
-        <div class="profile">
-            <a href="{{ url_for('my_profile') }}">Votre profil</a>
+    <div class="d-flex gap-2 justify-content-center">
+        {% if current_user.is_authenticated %}
+            <button class="btn btn-outline-warning" href="{{ url_for('my_profile') }}">Votre profil</button>
+        {% endif %}
+        <button class="btn btn-outline-secondary" href="{{ url_for('stats') }}">Ajouts & Stats</button>
+    </div>
+    <div class="card overflow-y-scroll border-purple border-2 w-100" style="height: 350px;">
+        <div class="card-header">
+            Collaborateurs
         </div>
-    {% endif %}
-    <div class="stats">
-        <a href="{{ url_for('stats') }}">Ajouts & Stats</a>
+        <div class="card-body">
+            <ul class="list-group">
+                {% for user in users %}
+                    <li class="list-group-item">
+                        <button class="btn btn-outline-purple btn-sm" href="{{ url_for('user_profile', username = user.name) }}">{{ user.name }} 
+                            {% if user.privileges and user.privileges >= 1 %}
+                                (<span class="privilege-char">*</span>)
+                            {% endif %}
+                        </button>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
     </div>
-    <div class="collaborators">
-        <p>Collaborateurs : </p>
-        <ul>
-            {% for user in users %}
-                <li>
-                    <a href="{{ url_for('user_profile', username = user.name) }}">{{ user.name }} 
-                        {% if user.privileges and user.privileges >= 1 %}
-                            (<span class="privileges">*</span>)
-                        {% endif %}
-                    </a>
-                </li>
-            {% endfor %}
-        </ul>
-    </div>
-    <p class="user-infos">Les utilisateurs marqués d'une étoile (<span class="privileges">*</span>) possèdent des privilèges spéciaux.</p>
-    <small>Ce projet est <a href="https://github.com/gabriel-dahan/vadermap/" target="_blank">opensource</a>.</small>
+    <p class="user-infos">Les utilisateurs marqués d'une étoile (<span class="privilege-char">*</span>) possèdent des privilèges spéciaux.</p>
+    <small>Ce projet est <a href="https://github.com/gabriel-dahan/vadermap/" target="_blank" class="text-purple">opensource</a>.</small>
 {% endblock %}

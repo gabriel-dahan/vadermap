@@ -3,76 +3,105 @@
 {% block title %}VaderProfile{% endblock %}
 
 {% block head %}
-    <link rel="stylesheet" href="{{ url_for('static', filename='profile.css') }}">
+    <!-- <link rel="stylesheet" href="{{ url_for('static', filename='profile.css') }}"> -->
 {% endblock %}
 
 {% block content %}
-    {% if exists %}
-        <div class="header">
-            <a href="{{ url_for('home') }}"><img src="{{ url_for('static', filename='img/invader-logo-white.png') }}" alt="Invader Logo"></a>
-            <h1>{{ user.name }}</h1>
+    {% if user %}
+        <div class="header d-flex align-items-center justify-content-center gap-2">
+            <a href="{{ url_for('home') }}">
+                <img src="{{ url_for('static', filename='img/invader-logo-white.png') }}" alt="Invader Logo" style="width: 35px; height: auto;">
+            </a>
+            <h2 class="mb-0">{{ user.name }}</h1>
         </div>
         {% if user.id == current_user.id %}
-            <div class="account-btns">
-                <a class="edit-profile" href="{{ url_for('profile_settings') }}">Modifier le profil</a> |
-                <a class="logout" href="{{ url_for('logout') }}">Se déconnecter</a>
+            <div class="d-flex gap-3 justify-content-center">
+                <button class="btn btn-warning btn-sm" href="{{ url_for('profile_settings') }}">Modifier le profil</button>
+                <button class="btn btn-danger btn-sm" href="{{ url_for('logout') }}">Se déconnecter</button>
             </div>
         {% endif %}
 
         <p>{{ user.invaders|length }}/{{ invaders|length }} invaders</p>
         <small>Les invaders marqués "NN" sont "Non Nommés" (leur identifiant n'a pas été spécifié).</small>
-        <div class="search">Rechercher un invader : <input type="text" name="invader-search" id="invader-search"></input></div>
-        <div class="invaders">
-            {% for invader in sort_with_none(
-                iterable = invaders, 
-                attrs = ['city', 'inv_id'],
-                none_attr = 'inv_id'
-            ) %}
-                <a class="invader" href="{{ url_for('map', lat=invader.lat, lng=invader.lng) }}">
-                    {% if invader in user.invaders %}
-                        {% if invader.inv_id %}
-                            <div class="active resize">
-                                <p>{{ invader.city }}_{{ invader.inv_id }}</p>
-                            </div>
+
+        <div class="input-group">
+            <span class="input-group-text text-wrap">Rechercher un invader : </span>
+            <input type="text" class="form-control" id="invader-search">
+        </div>
+
+        <div class="card card-body overflow-scroll" style="max-height: 400px;">
+            <div class="invaders row">
+                {% for invader in sort_with_none(
+                    iterable = invaders, 
+                    attrs = ['city', 'inv_id'],
+                    none_attr = 'inv_id'
+                ) %}
+                    <div class="invader col p-1">
+                        {% if invader in user.invaders %}
+                            {% set cell_style = 'btn btn-primary' %}
+                            {% set marked = true %}
                         {% else %}
-                            <div class="active">
-                                <p>NN</p>        
-                            </div>
+                            {% set cell_style = 'btn btn-light' %}
+                            {% set marked = false %}
                         {% endif %}
-                    {% else %}
-                        {% if invader.inv_id %}
-                            <div class="resize">
-                                <p>{{ invader.city }}_{{ invader.inv_id }}</p>
-                            </div>
-                        {% else %}
-                            <div>
-                                <p>NN</p>
-                            </div>
-                        {% endif %}
-                    {% endif %}
-                </a>
-            {% endfor %}
-        </ul>
+
+                        <div class="dropdown">
+                            <button data-bs-toggle="dropdown" id="dropdown-{{ invader.city }}{{ invader.inv_id }}" class="{{ cell_style }} ratio ratio-1x1 border rounded dropdown-toggle show" style="width: 64px; height: 64px;" aria-exapanded="false">
+                                <small class="d-flex align-items-center justify-content-center" style="font-size: 13px;">
+                                    {% if invader.inv_id %}
+                                        {{ invader.city }}_{{ invader.inv_id }}
+                                    {% else %}
+                                        NN
+                                    {% endif %}
+                                </small>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-dark text-small" aria-labelledby="dropdown-{{ invader.city }}{{ invader.inv_id }}">
+                                <li><a class="dropdown-item" href="{{ url_for('map', lat=invader.lat, lng=invader.lng) }}">Voir sur la carte</a></li>
+                                {% if user == current_user %}
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item mark-invader" data-lat="{{ invader.lat }}" data-lng="{{ invader.lng }}" data-inv="{{ invader.city }}{{ invader.inv_id }}">Marquer</a></li>
+                                {% endif %}
+                            </ul>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+        <hr>
+        <details class="w-100 d-flex justify-content-center" style="max-width: 500px;">
+            <summary class="pb-4">Invaders par ville</summary>
+            <div class="card card-body">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th scope="col">Ville</th>
+                            <th scope="col">Marqués</th>
+                            <th scope="col">Posés</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for city, nb_user, nb in user_invaders_by_city|sort(attribute = 1, reverse = True) %}
+                            {% if nb > 0 and nb_user > 0 %}
+                                <tr>
+                                    <th scope="row">{{ city }}</th>
+                                    <td>{{ nb_user }}</td>
+                                    <td>{{ nb }}</td>
+                                </tr>
+                            {% endif %}
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </details>
     {% else %}
         <p>Cet utilisateur n'existe pas...</p>
     {% endif %}
 {% endblock %}
 
 {% block scripts %}
+    <script src="{{ url_for('static', filename='mapping.js') }}"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            /* OLD VERSION (AUTO RESIZE), deleted because of performance issues.
-            
-            const resizeElements = document.querySelectorAll('.resize');
-            resizeElements.forEach(resizeEl => {
-                const size = resizeEl.clientHeight - 5; // No need for height, every element is a square + padding.
-                const textEl = resizeEl.children[0];
-
-                let baseFontSize = 14;
-                let textElSize = textEl.textContent.length
-                textEl.style.fontSize = `${baseFontSize - textElSize + 4}px`;
-            }); */
-
+        document.onreadystatechange = () => {
             const invaderSearchInput = document.getElementById('invader-search');
             const listEl = document.querySelectorAll('.invader');
 
@@ -87,8 +116,27 @@
                     }
                 })
             });
-        });
 
+            // API to mark and edit invaders directly in profile.
+            const vaderAPI = new VaderAPI();
+            const markInvaderBtns = document.querySelectorAll('.mark-invader');
+            markInvaderBtns.forEach(btn => {
+                const lat = btn.getAttribute('data-lat');
+                const lng = btn.getAttribute('data-lng');
+                const inv = btn.getAttribute('data-inv');
+                const dropdown = document.getElementById(`dropdown-${inv}`);
+                btn.onclick = () => {
+                    vaderAPI.claimInvader(lat, lng);
+                    if (dropdown.classList.contains('btn-light')) {
+                        dropdown.classList.remove('btn-light');
+                        dropdown.classList.add('btn-primary');
+                    } else {
+                        dropdown.classList.remove('btn-primary');
+                        dropdown.classList.add('btn-light');
+                    }
+                }
+            });
+        };
     </script>
 {% endblock %}
 

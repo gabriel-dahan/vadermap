@@ -1,28 +1,41 @@
-{% extends 'base.html' %}
+{% extends 'root.html' %}
 
 {% block title %}VaderMap{% endblock %}
 
 {% block head %}
-    <link rel="stylesheet" href="{{ url_for('static', filename='map.css') }}">
+<!-- LEAFLET -->
+<link rel="stylesheet" href="{{ url_for('static', filename='node_modules/leaflet/dist/leaflet.css') }}" />
+<script src="{{ url_for('static', filename='node_modules/leaflet/dist/leaflet.js') }}"></script>
 
-    <!-- LEAFLET -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='node_modules/leaflet/dist/leaflet.css') }}" />
-    <script src="{{ url_for('static', filename='node_modules/leaflet/dist/leaflet.js') }}"></script>
+<!-- LEAFLET - MARKERCLUSTERS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.1/leaflet.markercluster.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.1/MarkerCluster.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.1/MarkerCluster.Default.css" />
 
-    <!-- LEAFLET - MARKERCLUSTERS -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.1/leaflet.markercluster.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.1/MarkerCluster.css" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.1/MarkerCluster.Default.css" />
+<link rel="stylesheet" href="{{ url_for('static', filename='map.css') }}">
 {% endblock %}
 
-{% block ext_content %}
-    <div id="modal"></div>
-    <div id="modal-blur"></div>
-
-    <div class="coordinates">
-        <p class="lat">Lat : <span id="lat-value"></span></p>
-        <p class="lng">Lng : <span id="lng-value"></span></p>
+{% block body %}
+    <div class="modal fade" id="map-modal" tabindex="-1" aria-labelledby="modal-title" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="map-modal-title"></h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="map-modal-content"></div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="button" class="btn btn-primary" id="map-modal-validate">Valider</button>
+                </div>
+            </div>
+        </div>
     </div>
+
+    <!-- <div id="modal"></div>
+    <div id="modal-blur"></div> -->
+    
+
     <div id="map"></div>
     <div class="space-invaders">
         <span class="title">
@@ -31,13 +44,21 @@
         </span>
         <p>Connecté en tant que <strong><a href="{{ url_for('my_profile') }}">{{ current_user.name }}</a></strong> ({{ current_user.invaders|length }}/{{ invaders|length }})</p>
     </div>
+
+    <div class="center-pos position-absolute bottom-0 start-0" style="z-index: 500;">
+        <button type="button" id="center-to-pos" class="btn">
+            <img src="{{ url_for('static', filename='img/crosshair.png') }}" width=30 />
+        <button>
+    </div>
 {% endblock %}
 
 {% block scripts %}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.4.1/socket.io.min.js"></script>
     <script src="{{ url_for('static', filename='mapping.js') }}"></script>
     <script>
         (async () => { 
-            const vaderMap = new VaderMap('map');
+            // const vaderWS = new VaderWS(); 
+            const vaderMap = new VaderMap('map', /* vaderWS */);
             
             const urlParams = new URLSearchParams(window.location.search);
             const lat = urlParams.get('lat');
@@ -52,6 +73,10 @@
             } else {
                 await vaderMap.init();
             }
+
+            document.getElementById('center-to-pos').addEventListener('click', e => {
+                vaderMap.centerToPosition();
+            })
         })();
     </script>
 {% endblock %}

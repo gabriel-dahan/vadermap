@@ -2,44 +2,37 @@
 
 {% block title %}VaderLogin{% endblock %}
 
-{% block head %}
-    <link rel="stylesheet" href="{{ url_for('static', filename='forms.css') }}">
-{% endblock %}
-
 {% block content %}
-    <div class="form">
-        <h3>Login</h3>
+    <div class="d-flex flex-column w-75">
+        <h3 class="text-center">Se connecter</h3>
         <form method="POST" action="" novalidate>
             {{ form.hidden_tag() }}
-            <legend>Connectez-vous ici...</legend>
+            <p class="text-center">Connectez-vous ici !</p>
             <div class="form-fields">
-                <div class="form-field">
-                    <p>{{ form.username.label }}</p>
-                    {{ form.username(id='form-user-name', _prevent_uppercase=True) }}
-                    {% if form.username.errors %}
-                        <div class="invalid">
-                            {% for error in form.username.errors %}
-                                <span>{{ error }}</span>
-                            {% endfor %}
+                {% for field in form %}
+                    {% if field.type not in ['SubmitField', 'HiddenField', 'CSRFTokenField'] %}
+                        {% set field_class = field.render_kw.class_ -%}
+                        <div class="form-floating mb-3">
+                            {% if field.errors %}
+                                {{ field(class = field_class + ' is-invalid') }}
+                                <div>
+                                    {% for error in field.errors %}
+                                        <div class="text-danger-emphasis">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                {{ field }}
+                            {% endif %}
+                            <label class="form-label">{{ field.label }}</label>
                         </div>
                     {% endif %}
-                </div>
-                <div class="form-field">
-                    <p>{{ form.password.label }}</p>
-                    {{ form.password }}
-                    {% if form.password.errors %}
-                        <div class="invalid">
-                            {% for error in form.password.errors %}
-                                <span>{{ error }}</span>
-                            {% endfor %}
-                        </div>
-                    {% endif %}
-                </div>
-                <div class="submit">
-                    {{ form.submit }}
+                {% endfor %}
+                <div class="submit d-grid">
+                    {{ form.submit(class="btn btn-primary") }}
                 </div>
             </div>
         </form>
+        <hr>
         <div class="account-exists-or-not">
             <small>
                 Vous n'avez pas de compte ? <a href="{{ url_for('signup') }}" class="hover-effect">Enregistrez-vous</a>

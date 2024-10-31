@@ -12,7 +12,7 @@
     "leaflet": "^1.9.3"
   },
   "dependencies": {
-    "@maplibre/maplibre-gl-leaflet": "^0.0.19",
+    "leaflet-rotate-map": "^0.3.1",
     "leaflet.markercluster": "^1.5.3",
     "maplibre-gl": "^3.0.1"
   }

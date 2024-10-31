@@ -1,42 +1,51 @@
-<!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+{% extends 'root.html' %}
 
-        <link rel="stylesheet" href="{{ url_for('static', filename='base.css') }}">
-        <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
+{% block body %}
+    {% block ext_content %}
+    {% endblock %}
 
-        <title>{% block title %}{% endblock %}</title>
-
-        {% block head %}
-        {% endblock head %}
-    </head>
-    <body>
-        <div id="loader"></div>
-        <div id="loader-background"></div>
-
-        {% block ext_content %}
-        {% endblock %}
-
-        <div class="container">
+    <div class="container d-flex align-items-center justify-content-center mt-5 mb-5 text-center">
+        <div class="d-flex flex-column gap-3 align-items-center">
             {% block content %}
             {% endblock %}
         </div>
+    </div>
 
-        <script>
-            document.onreadystatechange = () => { 
-                if (document.readyState === "complete") { 
-                    document.querySelector("#loader").style.display = "none"; 
-                    document.querySelector("#loader-background").style.display = "none";
-                    document.querySelector(".container").style.display = "flex"; 
-                } 
-            } ;
-        </script>
-    
-        {% block scripts %}
-        {% endblock %}
-    </body>
+    <footer class="py-3 my-4 position-relative">
+        <hr>
+        <p class="text-center text-body-secondary">© {{ now().year }} VaderMap <small>({{ version }})</small></p>
+        <div class="form-check form-switch position-absolute d-flex gap-2 align-items-center" style="top: 45px; right: 10px;">
+            <input class="form-check-input" type="checkbox" role="switch" id="darkmode-switch" value="on">
+            <label><img src="{{ url_for('static', filename='img/darkmode.svg') }}" alt="Dark mode" width="15px"></label>
+        </div>
+    </div>
+    </footer>
 
-</html>
+    <script>
+        const clickableElements = document.querySelectorAll('tr, button, div');
+        clickableElements.forEach(element => {
+            let href = element.getAttribute('href');
+            if(href) {
+                element.onclick = () => { window.location = href; };
+            }
+        });
+
+
+        const checked = parseInt('{{ current_user.checked if current_user.is_authenticated else 0 }}');
+
+        const darkModeSwitch = document.getElementById('darkmode-switch');
+        const html = document.getElementsByTagName('html')[0];
+        darkModeSwitch.addEventListener('click', e => {
+            console.log(darkModeSwitch.value)
+            if(darkModeSwitch.checked) {
+                html.setAttribute('data-bs-theme', 'light')
+            } else {
+                html.setAttribute('data-bs-theme', 'dark')
+            }
+        })
+
+        if(checked) {
+            darkModeSwitch.click();
+        }
+    </script>
+{% endblock body %}

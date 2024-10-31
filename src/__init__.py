@@ -2,12 +2,18 @@ from flask import Flask, Blueprint, render_template, request, jsonify, redirect,
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, current_user, login_user, login_required, logout_user
 from flask_migrate import Migrate
+# from flask_socketio import SocketIO, emit
 
+import os
+from typing import Any
 from functools import wraps
 from passlib.hash import sha256_crypt
 from dotenv import dotenv_values
+from datetime import datetime
 
 CONF = dotenv_values('.env')
+
+ver = CONF['VERSION']
 
 __app__ = Flask(
     __name__,
@@ -36,6 +42,7 @@ login_manager.login_view = 'login'
 def load_user(user_id):
     return User.query.filter_by(id = user_id).first()
 
+
 from .data_loader import MapData
 vmap = MapData()
 
@@ -43,6 +50,13 @@ from .invaders_img_data import ImagesScraper
 scraper = ImagesScraper()
 
 from .jinja2_external import sort_with_none
+
+@__app__.context_processor
+def inject_globals():
+    return dict(
+        now = datetime.now,
+        version = ver
+    )
 
 @__app__.route('/')
 def home():
@@ -60,9 +74,19 @@ def my_profile():
 
 @__app__.route('/user/<username>')
 def user_profile(username: str):
-    user = User.query.filter_by(name = username).first()
-    exists = bool(user)
-    return render_template('profile.html', user = user, exists = exists, invaders = Invader.query.all(), sort_with_none = sort_with_none)
+    user: User = User.query.filter_by(name = username).first()
+
+    cities = scraper.get_cities()
+    user_invaders_by_city = []
+    for city in cities:
+        invaders_by_city = Invader.query.filter_by(city = city)
+        invaders_by_city_and_user = invaders_by_city.filter(Invader.users.any(id = user.id))
+
+        user_invaders_by_city.append(
+            (city, invaders_by_city_and_user.count(), invaders_by_city.count())
+        )
+
+    return render_template('profile.html', user = user, invaders = Invader.query.all(), sort_with_none = sort_with_none, user_invaders_by_city = user_invaders_by_city)
 
 from .forms import LoginForm, RegistrationForm, EditProfileForm
 
@@ -125,7 +149,27 @@ def logout():
 def stats():
     return render_template('stats.html', invaders = Invader.query.all())
 
-### API ###
+# --- WEBSOCKET --- #
+
+## Broadcast events : 
+# - addInvaderMarker : { 'event': 'add_invader', 'data': <latLng> }
+# - deleteInvaderMarker : { 'event': 'delete_invader', 'data': <latLng> }
+
+"""socket = SocketIO(__app__)
+
+@socket.on('connect')
+def ws_connect():
+    emit('response', {'message': 'Connection successful.'})
+
+@socket.on('disconnect')
+def ws_disconn():
+    pass
+
+@socket.on('broadcast_req')
+def ws_broadcast_request(data: Any):
+    emit('broadcast', data)"""
+
+# --- API --- #
 
 api = Blueprint('api', __name__)
 
@@ -163,8 +207,8 @@ def claim_invader():
         'message': 'Invader claimed successfully.'
     })
 
-@secured_api('/invader-does-not-exist', methods = ['POST'])
-def invader_does_not_exist():
+@secured_api('/invader-change-state', methods = ['POST'])
+def invader_change_state():
     data = request.get_json()
     lat = data.get('lat')
     lng = data.get('lng')
@@ -174,7 +218,7 @@ def invader_does_not_exist():
         return jsonify({
             'error': 'Missing one argument.'
         })
-    vmap.invader_does_not_exist(lat, lng, state)
+    vmap.invader_change_state(lat, lng, state)
     return jsonify({
         'message': 'Invader status changed successfully.'
     })
@@ -197,6 +241,24 @@ def add_invader():
         'message': 'Invader added successfuly'
     })
 
+@secured_api('/move-invader', methods = ['POST'])
+def move_invader():
+    data = request.get_json()
+    lat = data.get('lat')
+    lng = data.get('lng')
+    new_lat = data.get('new_lat')
+    new_lng = data.get('new_lng')
+
+    if not (lat and lng and new_lat and new_lng):
+        return jsonify({
+            'error': 'Missing one argument.'
+        })
+    
+    vmap.move_invader(lat, lng, new_lat, new_lng)
+    return jsonify({
+        'message': f'Invader moved successfuly to pos [{new_lat}, {new_lng}].'
+    })
+
 @secured_api('/update-invader', methods = ['POST'])
 def update_invader():
     data = request.get_json()
@@ -212,7 +274,7 @@ def update_invader():
     
     vmap.update_invader(lat, lng, city, inv_id)
     return jsonify({
-        'message': 'Invader added successfuly'
+        'message': 'Invader updated successfuly.'
     })
 
 @secured_api('/delete-invader', methods = ['POST'])
@@ -226,7 +288,12 @@ def delete_invader():
             'error': 'Missing one argument.'
         })
     
-    vmap.delete_invader(lat, lng)
+    deleted = vmap.delete_invader(lat, lng)
+    if not deleted:
+        return jsonify({
+        'error': 'Invader was not found.'
+    })
+
     return jsonify({
         'message': 'Invader removed successfully.'
     })
@@ -280,3 +347,15 @@ def get_cities():
 __app__.register_blueprint(api, url_prefix = '/api')
 
 from .models import Invader, User
+
+# --- ADMIN PAGE --- #
+
+__app__.config['FLASK_ADMIN_SWATCH'] = 'lux'
+    
+from .admin import admin, SecuredModelView, SecuredFileView
+
+path = os.path.join(os.path.dirname(__file__), 'static')
+admin.add_view(SecuredFileView(path, '/static/', name = 'Static Files'))
+
+admin.add_view(SecuredModelView(Invader, db.session))
+admin.add_view(SecuredModelView(User, db.session))

@@ -57,10 +57,11 @@ class Invader(db.Model):
 class User(db.Model, UserMixin):
     __tablename__ = 'users'
 
-    id: float = db.Column(db.Integer, primary_key = True)
+    id: int = db.Column(db.Integer, primary_key = True)
     name: str = db.Column(db.String(20), unique = True, nullable = False)
     passwd: str = db.Column(db.String(80), nullable = False)
     privileges: int = db.Column(db.Integer, server_default = '0')
+    theme: int = db.Column(db.Integer, server_default = '0') # 0 -> dark ; 1 -> light
 
     # INVADERS RELATIONSHIP
     invaders = db.relationship('Invader', secondary = users_invaders, backref='users') # Many-to-Many
@@ -75,7 +76,8 @@ class User(db.Model, UserMixin):
         return {
             'id': self.id,
             'name': self.name,
-            'privileges': self.privileges or 0
+            'privileges': self.privileges or 0,
+            'theme': self.theme
         }
 
     def __repr__(self) -> str:

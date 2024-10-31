@@ -47,9 +47,9 @@ class VaderAPI {
         return await this._get(this.base + 'get-cities')
     }
 
-    async doesNotExist(lat, lng, state) {
+    async changeState(lat, lng, state) {
         return await this._post(
-            this.base + 'invader-does-not-exist',
+            this.base + 'invader-change-state',
             {
                 lat: lat,
                 lng: lng,
@@ -101,6 +101,18 @@ class VaderAPI {
         )
     }
 
+    async moveInvader(lat, lng, newLat, newLng) {
+        await this._post(
+            this.base + 'move-invader',
+            {
+                lat: lat,
+                lng: lng,
+                new_lat: newLat,
+                new_lng: newLng
+            }
+        )
+    }
+
     async deleteInvader(marker) {
         const latLng = marker.getLatLng();
         await this._post(
@@ -110,6 +122,50 @@ class VaderAPI {
                 lng: latLng.lng
             }
         )
+    }
+}
+
+class VaderWS {
+    constructor() {
+
+        this.socket = io();
+        this.initEvents();
+    }
+
+    initEvents() {
+        this.socket.on('response', data => {
+            console.log(data.message);
+        });
+
+        this.socket.on('connect', () => {
+            console.log('Connected to map.');
+            this.socket.send('Hello Server from /map!');
+        });
+
+        this.socket.on('disconnect', () => {
+            console.log('Disconnected from the map.');
+        });
+
+        this.socket.on('broadcast', data => {
+            this.__handleBroadcastEvent(data);
+        });
+    }
+
+    getConn() {
+        return this.socket
+    }
+
+    __handleBroadcastEvent(data) {
+        switch (data.event) {
+            case 'add_invader':
+                this.vaderMap.addInvaderMarker();
+                break;
+            case 'delete_invader':
+                this.vaderMap.deleteInvaderMarker();
+                break;
+            default:
+                break;
+        }
     }
 }
 
@@ -127,14 +183,19 @@ const iOS = () => { // Returns true if the platform is iOS
 }
 
 class VaderMap {
-    constructor(mapElementId, mapOrigin = [48.85895522569794, 2.3454093933105473], mapZoom = 12, maxZoom = 18) {
+    constructor(mapElementId, /* vaderWebSocket,*/ mapOrigin = [46.8, 2.7], mapZoom = 3, maxZoom = 18) {
+
+        // --- WebSocket --- //
+        // this.ws = vaderWebSocket; 
+        // this.socket = this.ws.getConn(); // websocket connection
+        // ----------------- //
 
         if(iOS()) {
-            this.iconSize = [30, 30];
-            this.pointerSize = [80, 80];
+            this.iconSize = [35, 35];
+            this.pointerSize = [10, 10];
         } else {
             this.iconSize = [40, 40];
-            this.pointerSize = [100, 100];
+            this.pointerSize = [15, 15];
         }
 
         this.mapId = mapElementId;
@@ -149,11 +210,13 @@ class VaderMap {
             marker: null,
             accCircle: null,
             zoomed: null
-        }
+        };
+
+        this.geoLoc = false;
 
         const IMG_PATH = 'img/';
         this.icons = {
-            pointer: IMG_PATH + 'pointer.png',
+            pointer: IMG_PATH + 'pointer.svg',
             invader: IMG_PATH + 'invader-logo-white.png',
             otherInvader: IMG_PATH + 'invader-logo.png',
             brokenInvader: IMG_PATH + 'invader-logo-broken.png',
@@ -297,21 +360,22 @@ class VaderMap {
                 optionsString += `<option value="${cityCode}" ${selected}>${cityCode}</option>`
             })
 
-            let validate = await this.confirmationModal(
+            let validate = await this.confirmationModal(`Ajouter l'invader <strong>n°${this.data.invaders.length + 1}</strong> ?`,
                 `
-                    <strong>Ajouter l'invader n°${this.data.invaders.length + 1} ?</strong>
-                    <p>Si possible, donnez son identifiant (voir application flashInvaders&copy;) :</p>
-                    <div class="inputs">
-                        <select id="invader-city">${optionsString}</select>
-                        <input id="invader-id" type="number">
+                    Si possible, donnez son identifiant (voir application flashInvaders&copy;) :
+                    <div class="input-group mb-3 mt-3">
+                        <select id="invader-city" class="form-control" style="max-width: fit-content;">${optionsString}</select>
+                        <span class="input-group-text">_</span>
+                        <input id="invader-id" class="form-control" type="number">
                     </div>
-                    <small>Cela permet d'ajouter automatiquement une image</small>
+                    <small>Cela permet d'ajouter automatiquement une image.</small>
                 `, 
                 ['invader-city', 'invader-id']
             )
 
             if(validate) {
                 let latLng = e.latlng;
+
 
                 let rawInvId = validate['invader-id'];
                 let rawCity = validate['invader-city'];
@@ -353,76 +417,61 @@ class VaderMap {
             }
         }
 
+        const loadInvaderInformations = async (e) => {
+            const popUpElement = e.popup.getContent();
+            const tooltipInfo = popUpElement.querySelector('[data-bs-toggle=tooltip]');
+            $(tooltipInfo).tooltip();
+        }
+
         this.map.on('click', mapClick);
-        this.map.on('mousemove', updateLatLngText)
-        this.map.on('popupopen', loadInvaderImage)
+        this.map.on('mousemove', updateLatLngText);
+        this.map.on('popupopen', loadInvaderImage);
+        this.map.on('popupopen', loadInvaderInformations);
+        this.map.on('movestart', () => { $('[data-bs-toggle="tooltip"]').tooltip('hide'); });
     }
 
-    confirmationModal(htmlContent, inputIdsToCheck) {
-        // Shows a Modal with html content 'htmlContent' and that executes function 'f' on success.
+    informationModal(htmlContent) {
+        const modal = document.getElementById('map-modal');
+        const modalValidateBtn = document.getElementById('map-modal-validate');
+        const modalContent = document.getElementById('map-modal-content');
 
-        const modal = document.getElementById('modal');
-        const modalBlur = document.getElementById('modal-blur');
+        modalContent.innerHTML = htmlContent;
+        $(modal).modal('show');
 
-        modal.innerHTML = htmlContent;
-        modal.classList.add('visible');
-        modalBlur.classList.add('visible');
+        modalValidateBtn.onclick = () => $(modal).modal('hide');
+    }
 
-        /* CSS properties */
-        const changeSize = () => {
-            modal.style.left = `${window.innerWidth / 2 - modal.clientWidth / 2 - 20}px`;
-            modal.style.top = `${window.innerHeight / 2 - modal.clientHeight / 2 - 20}px`;
-        }
-        changeSize();
-        window.onresize = () => {
-            changeSize();
-        }
-        
-        /* Validate & Cancel buttons */
-        const btns = document.createElement('div');
-        btns.classList.add('btns');
+    confirmationModal(title, htmlContent, inputIdsToCheck) {
+        const modal = document.getElementById('map-modal');
+        const modalValidateBtn = document.getElementById('map-modal-validate');
+        const modalTitle = document.getElementById('map-modal-title');
+        const modalContent = document.getElementById('map-modal-content');
 
-        const cancelBtn = document.createElement('button');
-        cancelBtn.innerHTML = '<strong>Annuler</strong>';
-        cancelBtn.style.background = 'transparent';
-        cancelBtn.style.border = 'none';
-        cancelBtn.style.cursor = 'pointer';
-        cancelBtn.children[0].style.color = 'red';
-
-        const validateBtn = document.createElement('button');
-        validateBtn.innerHTML = '<strong>Valider</strong>';
-        validateBtn.style.background = 'transparent';
-        validateBtn.style.border = 'none';
-        validateBtn.style.cursor = 'pointer';
-        validateBtn.children[0].style.color = '#0f4ca8';
-        
-        btns.appendChild(validateBtn);
-        btns.appendChild(cancelBtn);
-        
-        modal.appendChild(btns);
-
-        let closeModal = () => {
-            modal.innerHTML = '';
-            modal.classList.remove('visible');
-            modalBlur.classList.remove('visible');
-        }
+        modalTitle.innerHTML = title
+        modalContent.innerHTML = htmlContent;
+        $(modal).modal('show');
 
         return new Promise((resolve, _) => {
-            cancelBtn.onclick = () => { 
-                closeModal();
-                resolve(false);
-            };
-    
-            validateBtn.onclick = () => { 
-                let inputs = {}
+            let validateClicked = false;
+            let inputs = {}
+
+            modalValidateBtn.onclick = () => { 
                 inputIdsToCheck.forEach(input => {
                     const inputEl = document.getElementById(input);
                     inputs[input] = inputEl.value;
                 });
 
-                closeModal();
-                resolve(inputs);
+                validateClicked = true;
+                $(modal).modal('hide');
             };
+
+            modal.addEventListener('hidden.bs.modal', () => {
+                if(validateClicked) {
+                    resolve(inputs);
+                } else {
+                    resolve(false);
+                }
+            });
         });
     }
 
@@ -464,6 +513,8 @@ class VaderMap {
 
     _initGeoLoc(fitBounds = true) {
         const geolocDenied = (err) => {
+            this.geoLoc = false;
+
             if (err.code === 1) {
                 console.error('Géolocalisation non acceptée.');
             } else {
@@ -472,6 +523,8 @@ class VaderMap {
         }
 
         navigator.geolocation.watchPosition((pos) => {
+            this.geoLoc = true;
+
             const lat = pos.coords.latitude;
             const lng = pos.coords.longitude;
             const accuracy = pos.coords.accuracy;
@@ -488,6 +541,11 @@ class VaderMap {
                 this.currentPos.zoomed = this.map.fitBounds(this.currentPos.accCircle.getBounds());
             }
         }, geolocDenied);
+    }
+
+    centerToPosition() {
+        if(this.geoLoc)
+            this.map.fitBounds(this.currentPos.accCircle.getBounds());
     }
 
     getInvaderMarker(lat, lng) {
@@ -511,15 +569,42 @@ class VaderMap {
     }
 
     async addInvader(lat, lng, city, inv_id) {
-        await this.api.addInvader(lat, lng, city, inv_id);
-        await this.reloadData();
-        await this.addInvaderMarker(lat, lng);
+        const invader = this.getInvaderDataFromID(city, inv_id);
+        if(!invader || !city || !inv_id) {
+            await this.api.addInvader(lat, lng, city, inv_id);
+            await this.reloadData();
+            await this.addInvaderMarker(lat, lng);
+
+            /* this.socket.emit('broadcast_req', { 
+                event: 'add_invader',
+                data: { lat: lat, lng: lng }
+            }); */
+        } else {
+            const invaderStr = `${invader.city}_${invader.inv_id}`;
+            let validate = await this.confirmationModal(`Déplacer l'invader ${invaderStr} ?`,
+                `
+                    <p>L'invader ${invaderStr} existe déjà, voulez-vous le déplacer ?</p>
+                `, []
+            )
+
+            if(validate) {
+                const invaderMarker = this.getInvaderMarker(invader.lat, invader.lng);
+                await this.api.moveInvader(invader.lat, invader.lng, lat, lng);
+                await this.reloadData();
+                await this.deleteInvaderMarker(invaderMarker);
+                await this.addInvaderMarker(lat, lng);
+            }
+        }
+    }
+
+    deleteInvaderMarker(marker) {
+        this.markerClusterGroup.removeLayer(marker);
+        this.activeMarkers.splice(this.activeMarkers.indexOf(marker), 1);
     }
 
     async deleteInvader(marker) {
         if (confirm(`Confirmer la suppression ?`)) {
-            this.markerClusterGroup.removeLayer(marker);
-            this.activeMarkers.splice(this.activeMarkers.indexOf(marker), 1);
+            this.deleteInvaderMarker(marker);
             await this.api.deleteInvader(marker);
             await this.reloadData();
         }
@@ -537,13 +622,22 @@ class VaderMap {
     }
 
     async updateExistence(lat, lng, marker, state) {
-        await this.api.doesNotExist(lat, lng, state);
+        await this.api.changeState(lat, lng, state);
         await this.updateInvader(lat, lng, marker);
     }
 
     async updateCityId(lat, lng, marker, city, inv_id) {
-        await this.api.updateInvader(lat, lng, city, inv_id);
-        await this.updateInvader(lat, lng, marker);
+        const invader = this.getInvaderDataFromID(city, inv_id);
+        if(!invader) {
+            await this.api.updateInvader(lat, lng, city, inv_id);
+            await this.updateInvader(lat, lng, marker);
+        } else {
+            this.informationModal(
+                `
+                    L'invader ${invader.city}_${invader.inv_id} existe déjà.
+                `
+            )
+        }
     }
 
     hasInvader(user, invader) {
@@ -554,9 +648,25 @@ class VaderMap {
     }
 
     getInvaderData(lat, lng) {
-        return this.data.invaders.filter(invader => 
+        const invaders = this.data.invaders.filter(invader => 
             (invader.lat === lat && invader.lng === lng)
-        )[0];
+        );
+        if(invaders.length > 0)
+            return invaders[0];
+        return null
+    }
+
+    getInvaderDataFromID(city, inv_id) {
+        const invaders = this.data.invaders.filter(invader => 
+            (invader.city === city && invader.inv_id === inv_id)
+        );
+        if(invaders.length > 0)
+            return invaders[0];
+        return null
+    }
+
+    invaderExists(lat, lng) {
+        return this.getInvaderData(lat, lng) ? true : false
     }
 
     getStatusFrom(statusId) {
@@ -599,7 +709,7 @@ class VaderMap {
         let spaceInvMarker = L.marker([lat, lng], { icon: icon });
         this.addMarkerToCluster(spaceInvMarker);
 
-        const formatedUsers = invader.users.map(user => `<li>${user.name}</li>`).join('');
+        const formatedUsers = invader.users.map(user => `<li class="list-group-item">${user.name}</li>`).join('');
         const date = new Date(invader.date);
 
         let invaderName = 'Non nommé';
@@ -614,20 +724,27 @@ class VaderMap {
 
         date.setHours(date.getHours() + 2);
         let invaderContainer = document.createElement('div');
-        invaderContainer.classList.add('invader-marker');
+        ['d-flex', 'flex-column', 'gap-2', 'align-items-center', 'justify-content-center', 'text-white'].forEach(style => {
+            invaderContainer.classList.add(style)
+        });
         invaderContainer.innerHTML = `
             <img class="invader-img" src=""></img>
-            <p>Trouvé par :</p>
-            <ul>
-                ${formatedUsers}
-            </ul>
+            <button 
+                class="btn btn-sm btn-outline-info" 
+                data-bs-toggle="tooltip" 
+                data-bs-placement="bottom"
+                data-bs-html="true"
+                data-bs-title='<ul class="list-group">${formatedUsers}</ul>'>
+                Utilisateurs
+            </button>
+            
             <small>${date.toLocaleString()}</small>
             <small>${this.getFormatedDeltaTime(date.toISOString())}</small>
         `;
 
         let nameChangeBtn = document.createElement('button');
         nameChangeBtn.classList.add('name-change-btn');
-        nameChangeBtn.innerHTML = `<strong class="name-change">${invaderName}</strong> <span style="color: gray; font-size: 10px;">(#${invaderNum})</span>`;
+        nameChangeBtn.innerHTML = `<strong class="name-change text-center">${invaderName}</strong> <span style="color: gray; font-size: 10px;">(#${invaderNum})</span>`;
         nameChangeBtn.style.background = 'transparent';
         nameChangeBtn.style.border = 'none';
         nameChangeBtn.style.cursor = 'pointer';
@@ -639,12 +756,12 @@ class VaderMap {
             });
             let idDefaultValue = invader.inv_id ? invader.inv_id : 0;
 
-            let validate = await this.confirmationModal(
+            let validate = await this.confirmationModal(`Modifier l'invader <strong>${invader.city}_${invader.inv_id}</strong> ?`,
                 `
-                    <strong>Modifier l'invader ${invader.city}_${invader.inv_id} ?</strong>
-                    <div class="inputs">
-                        <select id="invader-city">${optionsString}</select>
-                        <input id="invader-id" type="number" value="${idDefaultValue}">
+                    <div class="input-group mb-3 mt-3">
+                        <select id="invader-city" class="form-control" style="max-width: fit-content;">${optionsString}</select>
+                        <span class="input-group-text">_</span>
+                        <input id="invader-id" class="form-control" type="number" value="${idDefaultValue}">
                     </div>
                     <small>Spécifier un identifiant permet d'ajouter automatiquement une image.</small>
                 `, 
@@ -672,6 +789,7 @@ class VaderMap {
         // ----- Upper Buttons ----- //
 
         let upperBtns = document.createElement('div');
+        ['d-flex', 'gap-2'].forEach(class_ => upperBtns.classList.add(class_));
 
         if(isInvaderOwner || this.currentUser.privileges >= 1) {
             let deleteBtn = document.createElement('button');
@@ -709,12 +827,11 @@ class VaderMap {
                 let selected = invader.state == i ? 'selected' : ''
                 optionsString += `<option value="${i}" ${selected}>${this.getStatusFrom(i)}</option>`
             }
-            let newState = await this.confirmationModal(
+            let newState = await this.confirmationModal(`<strong>Modifier le statut de ${invader.city}_${invader.inv_id}.</strong>`,
                 `
-                    <strong>Modifier le statut de ${invader.city}_${invader.inv_id}.</strong>
                     <p>Choisissez l'état dans lequel est l'invader :</p>
-                    <div class="inputs">
-                        <select id="invader-status">${optionsString}</select>
+                    <div class="input-group mb-3 mt-3">
+                        <select id="invader-status" class="form-control">${optionsString}</select>
                     </div>
                 `, 
                 ['invader-status']
@@ -775,10 +892,13 @@ class VaderMap {
         const deltaTimeMilli = now.getTime() - date.getTime();
         // const deltaTimeSec = Math.floor(deltaTimeMilli / 1000);
         const deltaTimeMin = Math.floor(deltaTimeMilli / (1000 * 60));
-        const deltaTimeHours = Math.floor(deltaTimeMilli / (1000 * 60 * 60));
-        const deltaTimeDays = Math.floor(deltaTimeMilli / (1000 * 60 * 60 * 24));
+        const deltaTimeHours = Math.floor(deltaTimeMin / 60);
+        const deltaTimeDays = Math.floor(deltaTimeHours / 24);
+        const deltaTimeYears = Math.floor(deltaTimeDays / 365)
 
-        if(deltaTimeDays > 0) {
+        if(deltaTimeYears > 0) {
+            return `Ajouté il y a ${deltaTimeYears} an(s).`
+        } else if(deltaTimeDays > 0) {
             return `Ajouté il y a ${deltaTimeDays} jour(s).`
         } else if(deltaTimeHours > 0) {
             return `Ajouté il y a ${deltaTimeHours} heure(s).`

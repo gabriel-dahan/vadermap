@@ -3,64 +3,92 @@
 {% block title %}VaderStats{% endblock %}
 
 {% block head %}
-    <link rel="stylesheet" href="{{ url_for('static', filename='stats.css') }}">
 
     <!-- PLOT.LY -->
     <script src="https://cdn.plot.ly/plotly-2.27.0.min.js" charset="utf-8"></script>
 {% endblock %}
 
 {% block content %}
-    <header>
-        <a href="{{ url_for('home') }}"><img src="{{ url_for('static', filename='img/invader-logo-white.png') }}" alt="Invader Logo"></a>
+    <header class="d-flex gap-3 align-items-center">
+        <a href="{{ url_for('home') }}"><img src="{{ url_for('static', filename='img/invader-logo-white.png') }}" alt="Invader Logo" width="25px"></a>
         <strong>Statistiques</strong>
     </header>
     <div class="stats">
-        <div id="graph"></div>
+        <div id="graph" style="width: 350px; height: 200px;"></div>
     </div>
-    <div class="logs">
-        <strong>Logs</strong>
-        <div class="logs-container">
-            <ul id="logs-ul">
+    <div class="card overflow-y-scroll" style="height: 400px;">
+        <div class="card-header">
+            <strong>Logs</strong>
+        </div>
+        <div class="card-body">
+            <ul id="logs-ul" class="list-group">
                 {% for invader in invaders|reverse %}
-                    {% if invader.users|length > 0 %}
-                        <li>
-                            <a href="{{ url_for('map', lat=invader.lat, lng=invader.lng) }}">
-                                <small>
-                                    {% if invader.inv_id %}
-                                        {{ invader.city }}_{{ invader.inv_id }}
-                                    {% else %}
-                                        NN (#{{ invader.id }})
-                                    {% endif %} 
-                                </small>
-                            </a>
-                            ajouté le {{ invader.date.strftime('%d/%m/%Y') }} par <a href="{{ url_for('user_profile', username = invader.users[0].name) }}">
-                                {{ invader.users[0].name }}
-                            </a>.
-                        </li>
-                    {% else %}
-                        <li>
-                            <a href="{{ url_for('map', lat=invader.lat, lng=invader.lng) }}">
-                                <small>
-                                    {% if invader.inv_id %}
-                                        {{ invader.city }}_{{ invader.inv_id }}
-                                    {% else %}
-                                        NN (#{{ invader.id }})
-                                    {% endif %} 
-                                </small>
-                            </a>
+                    <li class="list-group-item" style="list-style: none;">
+                        <a href="{{ url_for('map', lat=invader.lat, lng=invader.lng) }}" 
+                            class="text-decoration-none"
+                            data-bs-toggle="tooltip" 
+                            data-bs-placement="left"
+                            data-bs-title="{{ invader.date.strftime('%Hh%M') }}"
+                        > 
+                            <small>
+                                {% if invader.inv_id %}
+                                    {{ invader.city }}_{{ invader.inv_id }}
+                                {% else %}
+                                    NN (#{{ invader.id }})
+                                {% endif %} 
+                            </small>
+                        </a>
+                        {% if invader.users|length > 0 %}
+                                ajouté le {{ invader.date.strftime('%d/%m/%Y') }} par 
+                                <a href="{{ url_for('user_profile', username = invader.users[0].name) }}" class="text-decoration-none">
+                                    {{ invader.users[0].name }}
+                                </a>.
+                        {% else %}
                             ajouté le {{ invader.date.strftime('%d/%m/%Y') }} <small>(Aucun utilisateur)</small>
-                        </li>
-                    {% endif %}
+                        {% endif %}
+                    </li>
                 {% endfor %}
             </ul>
-            <button id="loadmore-btn">Charger plus...</button>
         </div>
+        <button id="loadmore-btn" class="btn btn-outline-secondary btn-sm">Charger plus...</button>
     </div>
 {% endblock %}
 
 {% block scripts %}
     <script src="{{ url_for('static', filename='mapping.js') }}"></script>
-    <script src="{{ url_for('static', filename='loadmore_logs.js') }}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const itemsPerPage = 7;
+            let currentPage = 1;
+
+            const itemList = document.getElementById('logs-ul');
+            const loadMoreBtn = document.getElementById('loadmore-btn');
+            const items = Array.from(itemList.children);
+
+            const loadItems = page => {
+                const start = (page - 1) * itemsPerPage;
+                const end = page * itemsPerPage;
+
+                for (let i = start; i < end && i < items.length; i++) {
+                    items[i].style.display = 'list-item';
+                }
+
+                if (end >= items.length) {
+                    loadMoreBtn.style.display = 'none';
+                }
+            }
+
+            loadMoreBtn.addEventListener('click', () => {
+                currentPage++;
+                loadItems(currentPage);
+            });
+
+            // Initialize the list by hiding all items and showing the first set
+            items.forEach((item, index) => {
+                item.style.display = index < itemsPerPage ? 'list-item' : 'none';
+            });
+        });
+    </script>
     <script>
         const range = (start, end, step = 1) => {
             let result = [];
@@ -93,10 +121,18 @@
             ];
 
             const layout = {
-                showlegend: false
+                showlegend: false,
+                paper_bgcolor: 'rgba(0,0,0,0)',
+                plot_bgcolor: 'rgba(0,0,0,0)',
+                margin: {
+                    t: 0,
+                    b: 20,
+                    l: 30,
+                    r: 0
+                }
             };
 
-            Plotly.newPlot(statsEl, data, layout, {staticPlot: true, responsive: true});
+            Plotly.newPlot(statsEl, data, layout, { staticPlot: true, responsive: true });
         })();
     </script>
 {% endblock %}

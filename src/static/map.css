@@ -112,12 +112,17 @@
     gap: 15px;
 }
 
+.leaflet-popup-content-wrapper, .leaflet-popup-tip {
+    background-color: var(--bs-body-bg);
+}
+
 /* MARKER CLUSTERS */
 
 .cluster-icon {
     width: 30px;
     height: 30px;
     background-color: #fff;
+    color: #000;
     border-radius: 50%;
     border: 1px solid #000;
     display: flex !important;
