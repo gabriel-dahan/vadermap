@@ -17,6 +17,8 @@ V2.3 :
 ## - Make a comment on an invader.
 - Validate modal when pressing enter.
 - MaJ release notes on main page.
+- Store invader image & info if not already done.
+- Help page (for example for invader multiple status or filters)
 
 V3 :
 - Make VaderMap a more general and open service for people who want to share editable maps.

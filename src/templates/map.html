@@ -16,26 +16,6 @@
 {% endblock %}
 
 {% block body %}
-    <div class="modal fade" id="map-modal" tabindex="-1" aria-labelledby="modal-title" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h1 class="modal-title fs-5" id="map-modal-title"></h1>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body" id="map-modal-content"></div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-                    <button type="button" class="btn btn-primary" id="map-modal-validate">Valider</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- <div id="modal"></div>
-    <div id="modal-blur"></div> -->
-    
-
     <div id="map"></div>
     <div class="space-invaders">
         <span class="title">
@@ -46,7 +26,7 @@
     </div>
 
     <div class="center-pos position-absolute bottom-0 start-0" style="z-index: 500;">
-        <button type="button" id="center-to-pos" class="btn">
+        <button id="center-to-pos" class="btn">
             <img src="{{ url_for('static', filename='img/crosshair.png') }}" width=30 />
         <button>
     </div>

@@ -17,6 +17,22 @@
         {% endblock head %}
     </head>
     <body>
+        <div class="modal fade" id="modal0" tabindex="-1" aria-labelledby="modal-title" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h1 class="modal-title fs-5" id="modal0-title"></h1>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body" id="modal0-content"></div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                        <button type="button" class="btn btn-primary" id="modal0-validate">Valider</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         {% block body %}
         {% endblock %}
 
