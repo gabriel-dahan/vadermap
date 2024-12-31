@@ -23,6 +23,7 @@ SECRET=une_longue_chaine_secrete
 DB_URI=sqlite:///db.sqlite/ # Ou toute autre url à votre goût.
 
 MASTER_KEY=la_clef_de_création_de_compte_pour_invités
+VERSION=V2.3.2
 ```
 
 ### Premier lancement
