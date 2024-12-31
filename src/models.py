@@ -34,6 +34,7 @@ class Invader(db.Model):
 
     date: datetime = db.Column(db.DateTime, default = datetime.now, nullable = False)
     state: int = db.Column(db.Integer, nullable = False, server_default = '0') # 0 if existent, 1 if non-existent, 2 if destroyed, 3 if damaged.
+    comment: str = db.Column(db.Text)
 
     def as_json(self) -> dict:
         return {**self.as_json_norel(), **{
@@ -48,7 +49,8 @@ class Invader(db.Model):
             'inv_id': self.inv_id,
             'city': self.city,
             'date': self.date.isoformat(),
-            'state': self.state
+            'state': self.state,
+            'comment': self.comment
         }
 
     def __repr__(self) -> str:

@@ -1,26 +1,30 @@
-V2.3 :
-# - Finally a way to move invaders by naming new ones with the same ID ! 
-# - Subtle change in web style (bootstrap5 implementation).
-# - Button to center screen to current position.
-# - Change static icon at current position.
-- Websocket server for live invaders.
-- Preferences for invaders states, ?marked, etc.
-# - Admin tools (Flask-Admin) --> Remove unused accounts.
-# - Option to mark invader directly in profile (potentially other options).
-# - Dark/white theme.
-- A way to rotate the map (like google maps).
-- [Directions API](https://docs.mapbox.com/api/navigation/directions/) for up to 25 invaders...
-- Change routes files organization and create a 'mapping' directory to divide tasks of mapping.js.
-- - Séparer ce qui est relatif aux fonctions utilitaires (ajout d'invader pur et dur) et ce qui est relatif à la map elle-même (ajout du marker sur la map) => créer deux classes différentes initialisées.
-- Compteur d'invaders qui change quand on ajoute ou retire un invader.
-# - General class for modals (information and confirmation modals' base) [POSTPONED -> BOOTSTRAP]
-## - Make a comment on an invader.
-- Validate modal when pressing enter.
-- MaJ release notes on main page.
-- Store invader image & info if not already done.
-- Help page (for example for invader multiple status or filters)
+V2.4 :
+# 1 - Finally a way to move invaders by naming new ones with the same ID ! (v2.3.1)
+# 2 - Subtle change in web style (bootstrap5 implementation). (v2.3.1)
+# 3 - Button to center screen to current position. (v2.3.2)
+# 4 - Change static icon at current position. (v2.3.2)
+5 - Websocket server for live invaders.
+6 - Preferences for invaders states, ?marked, etc.
+# 7 - Admin tools (Flask-Admin) --> Remove unused accounts. (v2.3.1)
+# 8 - Option to mark invader directly in profile (potentially other options). (v2.3.1)
+# 9 - Dark/white theme. (v2.3.1, see [22])
+10 - A way to rotate the map (like google maps).
+11 - [Directions API](https://docs.mapbox.com/api/navigation/directions/) for up to 25 invaders...
+12 - Change routes files organization and create a 'mapping' directory to divide tasks of mapping.js.
+13 - Separate what is related to utility functions (e.g. adding/editing/removing/... invaders, etc.) and what is related to the map itself (adding the marker on the map) => create two different initialized classes.
+14 - Invader counter that changes when you add or remove an invader (see [5]).
+# 15 - General class for modals (information and confirmation modals' base) [POSTPONED -> BOOTSTRAP] (v2.3.2)
+# 16 - Make a comment on an invader. (v2.3.2)
+17 - Validate modal when pressing enter.
+# 18 - MaJ release notes on main page.
+19 - Store invader image & info if not already done.
+20 - Help page (for example for invader multiple status or filters)
+21 - Make some invaders stand out with a star/color/...
+22 - Remember choice of bootstrap theme.
+23 - LIL_00
 
 V3 :
+- Make this website into an editable embed provider.
 - Make VaderMap a more general and open service for people who want to share editable maps.
 - - Private/public maps.
 - - Map chat for contributors.

@@ -41,8 +41,8 @@
                             {% set cell_style = 'btn btn-primary' %}
                             {% set marked = true %}
                         {% else %}
+                        {% set marked = false %}
                             {% set cell_style = 'btn btn-light' %}
-                            {% set marked = false %}
                         {% endif %}
 
                         <div class="dropdown">
@@ -56,7 +56,7 @@
                                 </small>
                             </button>
                             <ul class="dropdown-menu dropdown-menu-dark text-small" aria-labelledby="dropdown-{{ invader.city }}{{ invader.inv_id }}">
-                                <li><a class="dropdown-item mark-invader" data-lat="{{ invader.lat }}" data-lng="{{ invader.lng }}" data-inv="{{ invader.city }}{{ invader.inv_id }}">Informations</a></li>
+                                <li><a class="dropdown-item mark-invader" data-lat="{{ invader.lat }}" data-lng="{{ invader.lng }}" data-inv="{{ invader.city }}{{ invader.inv_id }}">Marquer</a></li>
                                 <li><hr class="dropdown-divider"></li>
                                 <li><a class="dropdown-item" href="{{ url_for('map', lat=invader.lat, lng=invader.lng) }}">Voir sur la carte</a></li>
                             </ul>

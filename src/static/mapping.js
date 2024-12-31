@@ -113,6 +113,17 @@ class VaderAPI {
         )
     }
 
+    async updateInvaderComment(lat, lng, comment) {
+        await this._post(
+            this.base + 'update-invader-comment',
+            {
+                lat: lat,
+                lng: lng,
+                comment: comment
+            }
+        )
+    }
+
     async deleteInvader(lat, lng) {
         await this._post(
             this.base + 'delete-invader',
@@ -184,11 +195,15 @@ const iOS = () => { // Returns true if the platform is iOS
 class VaderUtilities {
     constructor() {  }
 
-    getNestedInformationModalBase(depth) {
-        if (depth <= 0) {
-            alert('Wrong nested modal depth.')
+    getInformationModalBase(depth) {
+        // depth > 0 for nested modals
+
+        if (depth < 0) {
+            alert('Wrong modal depth.')
             return ''
         }
+
+        const footer = this.getInformationModalFooter(depth);
 
         return `
         <div class="modal fade" id="modal${depth}" tabindex="-1" aria-labelledby="modal-title" aria-hidden="true">
@@ -198,9 +213,9 @@ class VaderUtilities {
                         <h1 class="modal-title fs-5" id="modal${depth}-title"></h1>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
-                    <div class="modal-body" id="modal${depth}-content"></div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-target="#modal${depth - 1}" data-bs-toggle="modal">Retour</button>
+                    <div class="modal-body" id="modal${depth}-body"></div>
+                    <div class="modal-footer" id="modal${depth}-footer">
+                        ${footer}
                     </div>
                 </div>
             </div>
@@ -208,11 +223,13 @@ class VaderUtilities {
         `
     }
 
-    getNestedConfirmationModalBase(depth) {
-        if (depth <= 0) {
+    getConfirmationModalBase(depth) {
+        if (depth < 0) {
             alert('Wrong nested modal depth.')
             return ''
         }
+
+        const footer = this.getConfirmationModalFooter(depth);
 
         return `
         <div class="modal fade" id="modal${depth}" tabindex="-1" aria-labelledby="modal-title" aria-hidden="true">
@@ -222,31 +239,62 @@ class VaderUtilities {
                         <h1 class="modal-title fs-5" id="modal${depth}-title"></h1>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
-                    <div class="modal-body" id="modal${depth}-content"></div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-target="#modal${depth - 1}" data-bs-toggle="modal">Retour</button>
-                        <button type="button" class="btn btn-primary" id="modal${depth}-validate" data-bs-target="#modal${depth - 1}" data-bs-toggle="modal">Valider</button>
+                    <div class="modal-body" id="modal${depth}-body"></div>
+                    <div class="modal-footer" id="modal${depth}-footer">
+                        ${footer}
                     </div>
                 </div>
             </div>
         </div>
         `
+    }
+
+    getInformationModalFooter(depth) {
+        if(depth > 0) {
+            return `<button type="button" class="btn btn-secondary" data-bs-target="#modal${depth - 1}" data-bs-toggle="modal">Retour</button>`
+        } else {
+            return '<button type="button" class="btn btn-secondary" data-bs-target="#modal0" data-bs-dismiss="modal">Fermer</button>'
+        }
+    }
+
+    getConfirmationModalFooter(depth, nestedDismiss) {
+        if(depth > 0) {
+            let dataAttr = `data-bs-target="#modal${depth - 1}" data-bs-toggle="modal"`;
+            if(nestedDismiss) {
+                dataAttr = `data-bs-dismiss="modal"`;
+            } 
+
+            return `<button type="button" class="btn btn-secondary" data-bs-target="#modal${depth - 1}" data-bs-toggle="modal">Retour</button>
+            <button type="button" class="btn btn-primary" id="modal${depth}-validate" ${dataAttr}>Valider</button>`
+
+        } else {
+            return `<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+            <button type="button" class="btn btn-primary" id="modal0-validate">Valider</button>`
+        }
     }
 
     informationModal(title, htmlElement, width = -1, height = -1, nested = 0) {
-        let modalSpecialId = 'modal0'
-        if (nested >= 1) {
-            modalSpecialId = `modal${nested}`
-            if (!document.getElementById(modalSpecialId)) {
-                const modalHTML = this.getNestedInformationModalBase(nested);
-                document.body.insertAdjacentHTML('afterbegin', modalHTML);
-            }
+        let modalSpecialId = `modal${nested}`
+
+        let modalBase = this.getInformationModalBase(nested);
+
+        let modal = document.getElementById(modalSpecialId);
+
+        if(!modal) {
+            document.body.insertAdjacentHTML('afterbegin', modalBase);
+            modal = document.getElementById(modalSpecialId);
         }
 
-        const modal = document.getElementById(modalSpecialId);
         const modalDialog = modal.children[0];
         const modalTitle = document.getElementById(`${modalSpecialId}-title`);
-        const modalContent = document.getElementById(`${modalSpecialId}-content`);
+        const modalBody = document.getElementById(`${modalSpecialId}-body`);
+        const modalFooter = document.getElementById(`${modalSpecialId}-footer`);
+
+        modalTitle.innerHTML = title;
+        modalBody.replaceChildren(htmlElement);
+
+        const footer = this.getInformationModalFooter(nested);
+        modalFooter.innerHTML = footer;
 
         if (width !== -1) {
             modalDialog.style.setProperty('max-width', width, 'important');
@@ -260,10 +308,14 @@ class VaderUtilities {
             modalDialog.style.maxHeight = '';
         }
 
-        modalTitle.innerHTML = title;
-        modalContent.replaceChildren(htmlElement);
+        // Enable TOOLTIPS inside modal :
+        const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+        const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => { 
+            new bootstrap.Tooltip(tooltipTriggerEl) ;
+        });
 
-        $(modal).modal('show');
+        const bootstrapModal = new bootstrap.Modal(modal);
+        bootstrapModal.show();
 
         modal.addEventListener('hidden.bs.modal', () => {
             modalDialog.style.maxWidth = '';
@@ -271,24 +323,28 @@ class VaderUtilities {
         });
     }
 
-    confirmationModal(title, htmlElement, inputIdsToCheck, width = -1, height = -1, nested = 0) {
-        let modalSpecialId = 'modal0'
-        if(nested >= 1) {
-            modalSpecialId = `modal${nested}`
-            if (!document.getElementById(modalSpecialId)) {
-                const modalHTML = this.getNestedConfirmationModalBase(nested);
-                document.body.insertAdjacentHTML('afterbegin', modalHTML);
-            }
+    async confirmationModal(title, htmlElement, inputIdsToCheck, width = -1, height = -1, nested = 0, nestedDismiss = false) {
+        let modalSpecialId = `modal${nested}`
+
+        let modalBase = this.getConfirmationModalBase(nested);
+
+        let modal = document.getElementById(modalSpecialId);
+
+        if(!modal) {
+            document.body.insertAdjacentHTML('afterbegin', modalBase);
+            modal = document.getElementById(modalSpecialId);
         }
 
-        const modal = document.getElementById(`${modalSpecialId}`);
         const modalDialog = modal.children[0];
-        const modalValidateBtn = document.getElementById(`${modalSpecialId}-validate`);
         const modalTitle = document.getElementById(`${modalSpecialId}-title`);
-        const modalContent = document.getElementById(`${modalSpecialId}-content`);
-
+        const modalBody = document.getElementById(`${modalSpecialId}-body`);
+        const modalFooter = document.getElementById(`${modalSpecialId}-footer`);
+        
         modalTitle.innerHTML = title
-        modalContent.replaceChildren(htmlElement);
+        modalBody.replaceChildren(htmlElement);
+        
+        const footer = this.getConfirmationModalFooter(nested, nestedDismiss);
+        modalFooter.innerHTML = footer;
 
         if (width !== -1) {
             modalDialog.style.setProperty('max-width', width, 'important');
@@ -302,11 +358,25 @@ class VaderUtilities {
             modalDialog.style.maxHeight = '';
         }
 
-        $(modal).modal('show');
+        // Enable TOOLTIPS inside modal :
+        const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+        const tooltips = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
+
+        let options = {}
+        if(nested > 0) {
+            options = {
+                backdrop: false
+            }
+        }
+
+        const bootstrapModal = new bootstrap.Modal(modal, options);
+        bootstrapModal.show();
 
         return new Promise((resolve, _) => {
             let validateClicked = false;
             let inputs = {}
+
+            const modalValidateBtn = document.getElementById(`${modalSpecialId}-validate`);
 
             modalValidateBtn.onclick = () => { 
                 inputIdsToCheck.forEach(input => {
@@ -316,7 +386,7 @@ class VaderUtilities {
 
                 validateClicked = true;
                 if(nested === 0) {
-                    $(modal).modal('hide');
+                    bootstrapModal.hide();
                 }
             };
 
@@ -634,7 +704,6 @@ class VaderMap {
         this.map.on('click', mapClick);
         this.map.on('mousemove', updateLatLngText);
         this.map.on('popupopen', loadInvaderImage);
-        this.map.on('movestart', () => { $('[data-bs-toggle="tooltip"]').tooltip('hide'); });
     }
 
     initClusters() {
@@ -775,15 +844,6 @@ class VaderMap {
         this.activeMarkers.splice(this.activeMarkers.indexOf(marker), 1);
     }
 
-    async deleteInvader(lat, lng) {
-        if (confirm(`Confirmer la suppression ?`)) {
-            const marker = this.getInvaderMarker(lat, lng);
-            this.deleteInvaderMarker(marker);
-            await this.api.deleteInvader(lat, lng);
-            await this.reloadData();
-        }
-    }
-
     async updateInvader(lat, lng) {
         await this.reloadData();
         const marker = this.getInvaderMarker(lat, lng)
@@ -794,6 +854,16 @@ class VaderMap {
     async updateClaimState(lat, lng) {
         await this.api.claimInvader(lat, lng);
         await this.updateInvader(lat, lng);
+    }
+
+    async updateComment(lat, lng, comment) {
+        await this.api.updateInvaderComment(lat, lng, comment);
+        await this.updateInvader(lat, lng);
+    }
+
+    async updateFavoriteState(lat, lng) {
+        // ...
+
     }
 
     async updateExistence(lat, lng, state) {
@@ -821,6 +891,11 @@ class VaderMap {
             return true;
         }
         return false;
+    }
+
+    isFavorite(user, invader) {
+        // TODO v2.3.3
+        return false; 
     }
 
     getInvaderData(lat, lng) {
@@ -878,7 +953,6 @@ class VaderMap {
 
     async invaderInformationsModal(invader) {
         const invaderName = this.utils.getFormatedInvaderName(invader);
-        let invaderImage = await this.getInvaderImage(invader) || this.icons.inexistentInvader;
         const invaderDate = new Date(invader.date);
 
         const lat = invader.lat;
@@ -887,6 +961,7 @@ class VaderMap {
         // User specific
         const isInvaderOwner = invader.users.length > 0 ? this.currentUser.id === invader.users[0].id : true;
         let hasInvader = this.hasInvader(this.currentUser, invader);
+        let isFavorite = this.isFavorite(this.currentUser, invader);
 
         let formatedUsers = (users) => {   
             return users.map(
@@ -912,21 +987,52 @@ class VaderMap {
             }
         }
 
+        const getMarkFavoriteBtnObj = (isFavorite) => {
+            return isFavorite ? {
+                class: 'btn-warning',
+                content: 'Ne plus marquer comme favori'
+            } : {
+                class: 'btn-outline-warning',
+                content: 'Marquer comme favori'
+            }
+        }
+
         let claimBtnObj = getClaimBtnObj(hasInvader);
+        let markFavoriteBtnObj = getMarkFavoriteBtnObj(isFavorite);
 
         const deleteBtnExists = isInvaderOwner || this.currentUser.privileges >= 1
-        const deleteInvaderHTML = deleteBtnExists ? '<button id="delete-invader" class="btn btn-danger" style="width: 100%">Supprimer</button>' : ''
+        const deleteInvaderHTML = deleteBtnExists ? '<button id="delete-invader" class="btn btn-danger" style="width: 100%" data-bs-target="#modal1" data-bs-toggle="modal">Supprimer</button>' : ''
+
+
+        const commentContent = (comment) => {
+            return `<div class="card-header">Commentaire (<button id="add-invader-comment" class="btn btn-sm btn-link" data-bs-target="#modal1" data-bs-toggle="modal">modifier</button>)</div>
+            <div class="card-body">${comment}</div>`
+        }
+
+        const invaderCommentHTML = invader.comment ? `
+            <div id="invader-comment" class="card">
+                ${commentContent(invader.comment)}
+            </div>
+        ` : `
+            <div id="invader-comment" class="card">
+                <button id="add-invader-comment" class="btn btn-sm btn-secondary" data-bs-target="#modal1" data-bs-toggle="modal">Ajouter un commentaire</button>
+            </div>
+        `
 
         const htmlContent = `
             <div class="row g-4">
                 <div class="col d-flex flex-column gap-3">
                     <div class="d-flex gap-4">
-                        <img src="${invaderImage}" class="rounded" alt="InvaderImage" style="min-width: 120px" width="120px">
+                        <img id="invader-image-modal" src="" class="rounded" alt="InvaderImage" style="min-width: 120px" width="120px" height="120px">
                         <div class="d-flex flex-fill flex-column gap-3 align-items-center justify-content-center">
                             <button id="claim-invader" class="btn ${claimBtnObj.class}" style="width: 100%">${claimBtnObj.content}</button>
-                            ${deleteInvaderHTML}
+                            <div style="width: 100%" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-title="Arrive bientôt (v2.3.3)">
+                                <button id="mark-invader-as-favorite" class="btn btn-sm ${markFavoriteBtnObj.class}" style="width: 100%" disabled>${markFavoriteBtnObj.content}</button>
+                            </div>
                         </div>
                     </div>
+                    ${deleteInvaderHTML}
+                    ${invaderCommentHTML}
                     <div class="card">
                         <ul class="list-group list-group-flush">
                             <li class="list-group-item">${invaderDate.toLocaleString()}</li>
@@ -982,6 +1088,18 @@ class VaderMap {
             await this.updateClaimState(lat, lng);
         }
 
+        const markFavoriteBtn = content.querySelector('#mark-invader-as-favorite');
+        markFavoriteBtn.onclick = async () => {
+            isFavorite = !isFavorite;
+            
+            markFavoriteBtn.classList.remove(markFavoriteBtnObj.class);
+            markFavoriteBtnObj = getMarkFavoriteBtnObj(isFavorite);
+            markFavoriteBtn.classList.add(markFavoriteBtnObj.class);
+            markFavoriteBtn.innerHTML = markFavoriteBtnObj.content;
+
+            await this.updateFavoriteState(lat, lng);
+        }
+
         const changeStatusBtn = content.querySelector('#change-status');
         const invaderStatusEl = content.querySelector('#invader-status');
         const invaderStatusImgEl = content.querySelector('#invader-status-img');
@@ -995,10 +1113,25 @@ class VaderMap {
 
         if(deleteBtnExists) {
             const deleteInvaderBtn = content.querySelector('#delete-invader');
-            deleteInvaderBtn.onclick = () => { this.deleteInvader(lat, lng); };
+            deleteInvaderBtn.onclick = () => { 
+                this.deleteInvaderModal(invader); 
+            };
         }
 
+        const invaderCommentElement = content.querySelector('#invader-comment');
+        const addInvaderCommentBtn = content.querySelector('#add-invader-comment');
+        addInvaderCommentBtn.onclick = async () => {
+            let comment = await this.updateInvaderCommentModal(invader);
+            if(comment) {
+                invaderCommentElement.innerHTML = commentContent(comment['invader-comment']);
+            }
+        };
+
         this.utils.informationModal(`Fiche d'identité de <strong>${invaderName}</strong>`, content, '700px')
+
+        const invaderImageElement = document.getElementById('invader-image-modal');
+        const invaderImage = await this.getInvaderImage(invader) || this.icons.inexistentInvader;
+        invaderImageElement.src = invaderImage;
     }
 
     async changeInvaderNameModal(invader) { 
@@ -1067,6 +1200,54 @@ class VaderMap {
         }
 
         return newState
+    };
+
+    async deleteInvaderModal(invader) { 
+        const invaderName = this.utils.getFormatedInvaderName(invader);
+
+        const content = document.createElement('div');
+        content.innerHTML = `<p>Confirmez-vous la suppression de l'invader ${invaderName} ? Cette action est irréversible.</p>`;
+
+        let confirms = await this.utils.confirmationModal(`<strong>Suppression</strong>`,
+            content, 
+            [],
+            -1, -1, 1, // -1, -1 refer to the default width and height of the modal, 1 refers to the depth of nested modal.
+            true // Dismiss previous modal when validating
+        )
+
+        if(confirms) {
+            const marker = this.getInvaderMarker(invader.lat, invader.lng);
+            this.deleteInvaderMarker(marker);
+            await this.api.deleteInvader(invader.lat, invader.lng);
+            await this.reloadData();
+        }
+
+        return confirms;
+    };
+
+    async updateInvaderCommentModal(invader) { 
+        const invaderName = this.utils.getFormatedInvaderName(invader);
+
+        const content = document.createElement('div');
+        content.innerHTML = `<p>Ajoutez/modifiez un commentaire concernant ${invaderName}. Cela permet de donner des indications concernant son emplacement s'il n'est pas évident.</p>
+        <div class="mb-3">
+            <label for="invader-comment" class="form-label">Commentaire</label>
+            <textarea class="form-control" id="invader-comment" rows="5">${invader.comment ? invader.comment : ''}</textarea>
+        </div>
+        `;
+
+        let comment = await this.utils.confirmationModal(`<strong>Ajouter un commentaire.</strong>`,
+            content, 
+            ['invader-comment'],
+            -1, -1, 1, // -1, -1 refer to the default width and height of the modal, 1 refers to the depth of nested modal.
+        )
+
+        if(comment) {
+            let newValue = comment['invader-comment'];
+            await this.updateComment(invader.lat, invader.lng, newValue);
+        }
+
+        return comment
     };
 
     async addInvaderMarker(lat, lng) {

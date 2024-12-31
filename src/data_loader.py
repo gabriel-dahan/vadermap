@@ -69,6 +69,13 @@ class MapData:
 
         db.session.commit()
         return invader.as_json()
+    
+    def update_invader_comment(self, lat: float, lng: float, comment: str | None) -> dict:
+        invader = Invader.query.filter_by(lat = lat, lng = lng).first()
+        invader.comment = comment
+
+        db.session.commit()
+        return invader.as_json()
 
     def delete_invader(self, lat: float, lng: float) -> Union[dict, None]:
         if invader := Invader.query.filter(

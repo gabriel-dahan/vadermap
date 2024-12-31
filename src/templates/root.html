@@ -17,28 +17,10 @@
         {% endblock head %}
     </head>
     <body>
-        <div class="modal fade" id="modal0" tabindex="-1" aria-labelledby="modal-title" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h1 class="modal-title fs-5" id="modal0-title"></h1>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body" id="modal0-content"></div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-                        <button type="button" class="btn btn-primary" id="modal0-validate">Valider</button>
-                    </div>
-                </div>
-            </div>
-        </div>
 
         {% block body %}
         {% endblock %}
 
-        <script src="https://code.jquery.com/jquery-3.7.1.min.js"
-        integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo="
-        crossorigin="anonymous"></script>
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
         <script>
             document.onreadystatechange = () => {
@@ -50,5 +32,47 @@
 
         {% block scripts %}
         {% endblock %}
+
+        {% if not g.patchnote_seen %}
+            <script src="{{ url_for('static', filename='mapping.js') }}"></script>
+            <script>
+                const utils = new VaderUtilities();
+
+                const content = document.createElement('div');
+                content.innerHTML = `
+                    <div class="card">
+                        <div class="card-header">
+                            Nouveautés
+                        </div>
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item">Un bouton pour centrer l'écran à sa position.</li>
+                            <li class="list-group-item">Un changement radical du fonctionnement des boîtes de dialogue (<i>modals</i>) afin de permettre...</li>
+                            <li class="list-group-item">...une utilisation plus simple de toutes les fonctions désormais liées à un invader sur la map. Désormais seule l'image et l'identifiant d'un invader est disponible sur la map, le reste est accessible en cliquant sur le bouton "Informations".</li>
+                            <li class="list-group-item">La possibilité de faire un commentaire relatif à un invader, afin de préciser un élément subtil le concernant : sa position (métro, hauteur), sa difficulté à flasher, sa visibilité, etc.</li>
+                            <li class="list-group-item">Quelques optimisations, changements graphiques (et sûrement quelques nouveaux bugs, pas encore trouvés).</li>
+                            <li class="list-group-item">Un moyen de voir les nouvelles mises à jour, pour ceux que ça intéresse (c'est ce que vous êtes entrain de lire).</li>
+                        </ul>
+                    </div>
+                    <hr>
+                    <div class="card">
+                        <div class="card-header">
+                            Prochainement (v2.3.3/v2.3.4)
+                        </div>
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item">Rendre accessible LIL_00 (cas particulier d'invader ne respectant pas les codes standarts et ne pouvant pas être mis sur le site actuellement).</li>
+                            <li class="list-group-item">Implémentation de websockets, permettant entre autre de centraliser les actions des utilisateurs sur la map (une action faite par A est vue par B sans besoin de recharger la map), donc par exemple de créer un chat textuel.</li>
+                            <li class="list-group-item">Ajout de préférences permettant de filtrer les invaders affichés sur la map et de personnaliser quelques éléments...</li>
+                            <li class="list-group-item">Un moyen de tourner la map (comme avec Google Maps).</li>
+                            <li class="list-group-item">Un moyen de créer des itinéraires entre un petit nombre d'invaders.</li>
+                            <li class="list-group-item">Quelques optimisation pour assurer la rapidité du site (il commence à y avoir beaucoup d'éléments sur la carte).</li>
+                            <li class="list-group-item">Une page d'aide pour comprendre le fonctionnement du site (s'inscrit dans un projet plus général pour la v3.0.0).</li>
+                            <li class="list-group-item">Faire ressortir des invaders spécifiques pas encore flashés sur la carte, en favoris.</li>
+                            <li class="list-group-item">Un choix permanent du thème noir/blanc (choix disponible mais qui ne reste pour l'instant pas après un rechargement du site).</li>
+                        </ul>
+                    </div>
+                `
+                utils.informationModal('PatchNote v2.3.2', content, '600px')
+            </script>
+        {% endif %}
     </body>
 </html>

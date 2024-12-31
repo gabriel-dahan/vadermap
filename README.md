@@ -1,8 +1,8 @@
-**EDIT fin août 2024 : Après plus de deux mois sans aucune modification, le développement reprend plus ou moins activement, toutes les fonctionnalités vouées à être ajoutées dans la v2.3 sont spécifiées dans [TODO.md](./TODO.md).**
+**EDIT fin août 2024 : Après plus de deux mois sans aucune modification, le développement reprend plus ou moins activement, toutes les fonctionnalités vouées à être ajoutées dans la v2.3 (et v2.4 dans un futur un peu lointain) sont spécifiées dans [TODO.md](./TODO.md).**
 
 # VaderMap
 
-Voici le code source d'un [site](https://vadermap.gabrieldahan.me/) que j'ai développé à destination d'un comité restreint, constitué d'une carte du monde, modifiée pour favoriser l'entraide de groupe autour de la recherche des [Space Invaders &copy;](https://www.space-invaders.com/world/) dans le monde entier. 
+Voici le code source d'un [site](https://vadermap.gabrieldahan.me/) que j'ai développé à destination d'un comité restreint, constitué d'une carte du monde, modifiée pour favoriser l'entraide de groupe autour de la recherche des [Space Invaders](https://www.space-invaders.com/world/) dans le monde entier. 
 
 Cette carte n'est pas publiquement accessible pour la simple et bonne raison qu'elle ne doit pas promouvoir la triche quant à la recherche des space-invaders. Il vous est cependant possible, sous licence, d'héberger par vous même le dit site à partir de son code source, et de l'utiliser comme bon vous semble.
 
@@ -40,7 +40,7 @@ $ python # Ou python3
 
 Lorsque le site est fonctionnel, il est alors possible d'inviter de nouveaux utilisateurs à créer leur compte (en leur fournissant la `MASTER_KEY` écrite dans `.env`). Par défaut, un utilisateur n'a pas la permission de supprimer les *invaders* des autres, si vous voulez la lui donner, vous pouvez executer l'instruction suivante dans un terminal :
 ```bash
-$ chpriv.py --privilege=1 --user=TGDS
+$ chpriv.py --privilege=1 --user=username
 ```
 
 - `--privilege` : 0 correspond au privilège par défaut, 1 et 2 correspondent (pour l'instant) au même privilège (énoncé au dessus), préférez donc 1 pour l'instant.

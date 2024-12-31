@@ -1,4 +1,4 @@
-from flask import Flask, Blueprint, render_template, request, jsonify, redirect, url_for
+from flask import Flask, Blueprint, render_template, request, jsonify, redirect, url_for, g, session
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, current_user, login_user, login_required, logout_user
 from flask_migrate import Migrate
@@ -42,7 +42,6 @@ login_manager.login_view = 'login'
 def load_user(user_id):
     return User.query.filter_by(id = user_id).first()
 
-
 from .data_loader import MapData
 vmap = MapData()
 
@@ -57,6 +56,19 @@ def inject_globals():
         now = datetime.now,
         version = ver
     )
+
+@__app__.before_request
+def website_patchnote_message():
+    if 'patchnote_seen' not in session:
+        session['patchnote_seen'] = True
+        g.patchnote_seen = False
+    else:
+        g.patchnote_seen = True
+
+@__app__.route('/reset-patchnote-message') # DEBUGGING PURPOSES
+def reset_patchnote_message():
+    session.pop('patchnote_seen', None)
+    return redirect(url_for('home'))
 
 @__app__.route('/')
 def home():
@@ -275,6 +287,18 @@ def update_invader():
     vmap.update_invader(lat, lng, city, inv_id)
     return jsonify({
         'message': 'Invader updated successfuly.'
+    })
+
+@secured_api('/update-invader-comment', methods = ['POST'])
+def update_invader_comment():
+    data = request.get_json()
+    lat = data.get('lat')
+    lng = data.get('lng')
+    comment = data.get('comment')
+    
+    vmap.update_invader_comment(lat, lng, comment)
+    return jsonify({
+        'message': 'Invader\'s comment successfuly updated.'
     })
 
 @secured_api('/delete-invader', methods = ['POST'])
