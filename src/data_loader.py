@@ -1,12 +1,11 @@
 from flask_login import current_user
 
 from . import db
-from .models import Invader
+from .models import Invader, Action
 
 from typing import List, Union, Literal
 from datetime import datetime
 import math
-import requests
 
 class MapData:
 
@@ -36,6 +35,17 @@ class MapData:
         if current_user.is_authenticated and (invader := Invader.query.filter(
             (Invader.lat == lat) & (Invader.lng == lng)
         ).first()):
+            action = Action(
+                type = 3,
+                user_name = current_user.name, # ensures to keep the username in case the user is deleted (which implies user_id being None).
+                user_id = current_user.id,
+                invader_id = invader.id,
+                old_data = invader.state,
+                new_data = state
+            )
+            db.session.add(action)
+            db.session.commit()
+
             invader.state = state
             db.session.commit()
         return None
@@ -48,14 +58,35 @@ class MapData:
             inv_id = inv_id
         )
         db.session.add(new_invader)
+        db.session.commit()
+
+        action = Action(
+            type = 1,
+            user_name = current_user.name, # ensures to keep the username in case the user is deleted (which implies user_id being None).
+            user_id = current_user.id,
+            invader_id = new_invader.id,
+            new_data = f'{city}_{inv_id}' if city and inv_id != None else f'NN (#{new_invader.id})'
+        )
+        db.session.add(action)
         
         current_user.invaders.append(new_invader)
-
         db.session.commit()
+
         return new_invader.as_json()
 
     def move_invader(self, lat: float, lng: float, new_lat: float, new_lng: float) -> dict:
         invader: Invader = Invader.query.filter_by(lat = lat, lng = lng).first()
+        action = Action(
+            type = 5,
+            user_name = current_user.name, # ensures to keep the username in case the user is deleted (which implies user_id being None).
+            user_id = current_user.id,
+            invader_id = invader.id,
+            old_data = f"{invader.lat};{invader.lng}", # formated for map web url.
+            new_data = f"{lat};{lng}" 
+        )
+        db.session.add(action)
+        db.session.commit()
+
         invader.lat = new_lat
         invader.lng = new_lng
 
@@ -64,6 +95,19 @@ class MapData:
 
     def update_invader(self, lat: float, lng: float, city: str, inv_id: int) -> dict:
         invader = Invader.query.filter_by(lat = lat, lng = lng).first()
+
+        action = Action(
+            type = 2,
+            user_name = current_user.name, # ensures to keep the username in case the user is deleted (which implies user_id being None).
+            user_id = current_user.id,
+            invader_id = invader.id,
+            old_data = f"{invader.city}_{invader.inv_id}" if invader.inv_id != None and invader.city else "NN",
+            new_data = f"{city}_{inv_id}" if inv_id != None and city else f'NN (#{invader.id})',
+        )
+
+        db.session.add(action)
+        db.session.commit()
+
         invader.city = city
         invader.inv_id = inv_id
 
@@ -72,6 +116,17 @@ class MapData:
     
     def update_invader_comment(self, lat: float, lng: float, comment: str | None) -> dict:
         invader = Invader.query.filter_by(lat = lat, lng = lng).first()
+        action = Action(
+            type = 4,
+            user_name = current_user.name, # ensures to keep the username in case the user is deleted (which implies user_id being None).
+            user_id = current_user.id,
+            invader_id = invader.id,
+            old_data = invader.comment,
+            new_data = comment
+        )
+        db.session.add(action)
+        db.session.commit()
+
         invader.comment = comment
 
         db.session.commit()
@@ -81,6 +136,7 @@ class MapData:
         if invader := Invader.query.filter(
             (Invader.lat == lat) & (Invader.lng == lng)
         ).first():
+
             db.session.delete(invader)
             db.session.commit()
             return invader.as_json()

@@ -1,11 +1,11 @@
-from flask import Flask, Blueprint, render_template, request, jsonify, redirect, url_for, g, session
+from flask import Flask, Blueprint, render_template, request, jsonify, redirect, url_for, send_from_directory
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import desc
 from flask_login import LoginManager, current_user, login_user, login_required, logout_user
 from flask_migrate import Migrate
 # from flask_socketio import SocketIO, emit
 
 import os
-from typing import Any
 from functools import wraps
 from passlib.hash import sha256_crypt
 from dotenv import dotenv_values
@@ -24,8 +24,6 @@ __app__ = Flask(
 __app__.config['SECRET_KEY'] = CONF['SECRET']
 
 __app__.url_map.strict_slashes = False
-
-# API ACCESS
 
 
 # DATABASE
@@ -57,17 +55,14 @@ def inject_globals():
         version = ver
     )
 
-@__app__.before_request
-def website_patchnote_message():
-    if 'patchnote_seen' not in session:
-        session['patchnote_seen'] = True
-        g.patchnote_seen = False
-    else:
-        g.patchnote_seen = True
+@__app__.route('/fonts/<path:filename>')
+def serve_font(filename):
+    return send_from_directory('static', f'fonts/{filename}', mimetype='font/ttf')
 
 @__app__.route('/reset-patchnote-message') # DEBUGGING PURPOSES
 def reset_patchnote_message():
-    session.pop('patchnote_seen', None)
+    current_user.patchnote_seen = False
+    db.session.commit()
     return redirect(url_for('home'))
 
 @__app__.route('/')
@@ -159,31 +154,45 @@ def logout():
 @__app__.route('/stats')
 @login_required
 def stats():
-    return render_template('stats.html', invaders = Invader.query.all())
-
-# --- WEBSOCKET --- #
-
-## Broadcast events : 
-# - addInvaderMarker : { 'event': 'add_invader', 'data': <latLng> }
-# - deleteInvaderMarker : { 'event': 'delete_invader', 'data': <latLng> }
-
-"""socket = SocketIO(__app__)
-
-@socket.on('connect')
-def ws_connect():
-    emit('response', {'message': 'Connection successful.'})
-
-@socket.on('disconnect')
-def ws_disconn():
-    pass
-
-@socket.on('broadcast_req')
-def ws_broadcast_request(data: Any):
-    emit('broadcast', data)"""
+    return render_template('stats.html')
 
 # --- API --- #
 
 api = Blueprint('api', __name__)
+
+@api.route('/get-paginated-actions')
+def get_paginated_actions():
+    list_page = request.args.get('page', 1, type = int)
+    per_page = request.args.get('per_page', 7, type = int)
+    max_pages = Action.query.count() // per_page + 1
+
+    if list_page == -1:
+        list_page = max_pages
+
+    if per_page > 100:
+        per_page = 100
+    start = (list_page - 1) * per_page
+    
+    actions: list[Action] = Action.query.order_by(desc(Action.date)).offset(start).limit(per_page).all()
+
+    return jsonify({
+        'actions': [action.as_json() for action in actions],
+        'page': list_page,
+        'per_page': per_page,
+        'max_pages': max_pages
+    })
+
+@api.route('/update-patchnote-seen') # Automatically called when the message is shown to the user, to change the status of User.patchnote_seen
+def update_patchnote_seen():
+    current_user.patchnote_seen = True
+    db.session.commit()
+    return jsonify(success = True)
+
+@api.route('/change-theme')
+def change_theme():
+    current_user.theme = 1 - current_user.theme
+    db.session.commit()
+    return jsonify(success = True)
 
 ## SECURED API ##
 
@@ -249,6 +258,7 @@ def add_invader():
         })
     
     vmap.add_invader(lat, lng, city, inv_id)
+
     return jsonify({
         'message': 'Invader added successfuly'
     })
@@ -370,7 +380,7 @@ def get_cities():
 
 __app__.register_blueprint(api, url_prefix = '/api')
 
-from .models import Invader, User
+from .models import Invader, User, Action, action_as_text
 
 # --- ADMIN PAGE --- #
 

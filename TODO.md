@@ -22,6 +22,8 @@ V2.4 :
 21 - Make some invaders stand out with a star/color/...
 22 - Remember choice of bootstrap theme.
 23 - LIL_00
+24 - Pseudos invisibles avant la connexion.
+25 - Min-height and width for invaders container in profile.
 
 V3 :
 - Make this website into an editable embed provider.

@@ -36,12 +36,12 @@
         const darkModeSwitch = document.getElementById('darkmode-switch');
         const html = document.getElementsByTagName('html')[0];
         darkModeSwitch.addEventListener('click', e => {
-            console.log(darkModeSwitch.value)
-            if(darkModeSwitch.checked) {
-                html.setAttribute('data-bs-theme', 'light')
+            if(html.getAttribute('data-bs-theme') == 'dark') {
+                html.setAttribute('data-bs-theme', 'light');
             } else {
-                html.setAttribute('data-bs-theme', 'dark')
+                html.setAttribute('data-bs-theme', 'dark');
             }
+            fetch('api/change-theme');
         })
 
         if(checked) {

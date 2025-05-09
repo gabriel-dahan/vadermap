@@ -408,7 +408,7 @@ class VaderUtilities {
 
         let invaderName = 'Non nommé';
 
-        if (invader.city && invader.inv_id) {
+        if (invader.city && invader.inv_id != null) {
             const city = invader.city;
             const inv_id = invader.inv_id
             invaderName = `${city}_${inv_id}`;
@@ -660,15 +660,15 @@ class VaderMap {
 
                 let rawInvId = validate['invader-id'];
                 let rawCity = validate['invader-city'];
-                let inv_id = rawInvId ? Number(rawInvId) : null;
-                let city = inv_id ? rawCity : null; // Not null only if inv_id is valid.
+
+                let isValid = this.validInvaderName(rawCity, rawInvId);
 
                 const maxId = this.cities[rawCity].invaders;
                 const cityName = this.cities[rawCity].name;
-                if(inv_id > maxId || inv_id < 0) {
+                if(!isValid) {
                     alert(`Cet identifiant est supérieur à l\'identifiant maximal pour cette région (${maxId} à ${cityName}) ou inférieur à 1.`)
                 } else {
-                    this.addInvader(latLng.lat, latLng.lng, city, inv_id);
+                    this.addInvader(latLng.lat, latLng.lng, rawCity, Number(rawInvId));
                 }
             }
         }
@@ -694,7 +694,7 @@ class VaderMap {
             const invaderImageElement = popUpElement.querySelector('.invader-img');
             const src = invaderImageElement.getAttribute('src');
 
-            if (src === '' && invader && invader.city && invader.inv_id) {
+            if (src === '' && invader && invader.city && invader.inv_id != null) {
                 const invaderImage = (await this.api.getInvaderImage(invader.city, invader.inv_id)).img;
                 invaderImageElement.setAttribute('src', invaderImage);
                 invaderMarker.setPopupContent(popUpElement);
@@ -796,7 +796,7 @@ class VaderMap {
     }
 
     async getInvaderImage(invader) {
-        if(invader.city && invader.inv_id) 
+        if(invader.city && invader.inv_id != null) 
             return (await this.api.getInvaderImage(invader.city, invader.inv_id)).img;
         return null
     }
@@ -811,7 +811,7 @@ class VaderMap {
 
     async addInvader(lat, lng, city, inv_id) {
         const invader = this.getInvaderDataFromID(city, inv_id);
-        if(!invader || !city || !inv_id) {
+        if(!invader || !city || inv_id == null) {
             await this.api.addInvader(lat, lng, city, inv_id);
             await this.reloadData();
             await this.addInvaderMarker(lat, lng);
@@ -1134,6 +1134,15 @@ class VaderMap {
         invaderImageElement.src = invaderImage;
     }
 
+    validInvaderName(rawCity, rawInvId) {
+        let inv_id = rawInvId != null ? Number(rawInvId) : null;
+        let city = inv_id != null ? rawCity : null;
+
+        let maxId = this.cities[rawCity].invaders;
+        maxId = city == 'LIL' ? maxId - 1 : maxId
+        return (1 <= inv_id && inv_id <= maxId) || (city == 'LIL' && 0 <= inv_id && inv_id <= maxId)
+    }
+
     async changeInvaderNameModal(invader) { 
         let optionsString = '';
         Object.keys(this.cities).forEach(cityCode => {
@@ -1160,15 +1169,15 @@ class VaderMap {
         if(validate) {
             let rawInvId = validate['invader-id'];
             let rawCity = validate['invader-city'];
-            let inv_id = rawInvId ? Number(rawInvId) : null;
-            let city = inv_id ? rawCity : null; // Not null only if inv_id is valid.
 
-            const maxId = this.cities[rawCity].invaders;
+            let maxId = this.cities[rawCity].invaders;
+            maxId = rawCity == 'LIL' ? maxId - 1 : maxId
             const cityName = this.cities[rawCity].name;
-            if(inv_id > maxId || inv_id < 0) {
-                alert(`Cet identifiant est supérieur à l\'identifiant maximal pour cette région (${maxId} à ${cityName}) ou inférieur à 1.`)
+
+            if(!this.validInvaderName(rawCity, rawInvId)) {
+                alert(`Cet identifiant est supérieur à l\'identifiant maximal pour cette région (${maxId} à ${cityName}) ou inférieur à 1 (ou 0 pour Lille).`)
             } else {
-                this.updateCityId(invader.lat, invader.lng, city, inv_id);
+                this.updateCityId(invader.lat, invader.lng, rawCity, Number(rawInvId));
             }
         }
     };

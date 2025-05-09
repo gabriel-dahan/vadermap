@@ -1,5 +1,12 @@
 @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono&display=swap');
 
+@font-face {
+    font-family: 'flashInvaders';
+    src: url('./fonts/8-bit-fortress.ttf') format('truetype');
+    font-weight: normal !important;
+    font-style: normal;
+}
+
 :root {
 	--blue: #4195f5;
 	--purple: #7c59fa;
@@ -59,4 +66,8 @@
 
 .border-purple {
 	border-color: var(--purple) !important;
+}
+
+h1, h2, h3 {
+    font-family: flashInvaders !important;
 }

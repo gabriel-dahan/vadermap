@@ -16,79 +16,39 @@
     <div class="stats">
         <div id="graph" style="width: 350px; height: 200px;"></div>
     </div>
-    <div class="card overflow-y-scroll" style="height: 400px;">
+    <div class="card" style="height: 400px;">
         <div class="card-header">
             <strong>Logs</strong>
         </div>
-        <div class="card-body">
-            <ul id="logs-ul" class="list-group">
-                {% for invader in invaders|reverse %}
-                    <li class="list-group-item" style="list-style: none;">
-                        <a href="{{ url_for('map', lat=invader.lat, lng=invader.lng) }}" 
-                            class="text-decoration-none"
-                            data-bs-toggle="tooltip" 
-                            data-bs-placement="left"
-                            data-bs-title="{{ invader.date.strftime('%Hh%M') }}"
-                        > 
-                            <small>
-                                {% if invader.inv_id %}
-                                    {{ invader.city }}_{{ invader.inv_id }}
-                                {% else %}
-                                    NN (#{{ invader.id }})
-                                {% endif %} 
-                            </small>
-                        </a>
-                        {% if invader.users|length > 0 %}
-                                ajouté le {{ invader.date.strftime('%d/%m/%Y') }} par 
-                                <a href="{{ url_for('user_profile', username = invader.users[0].name) }}" class="text-decoration-none">
-                                    {{ invader.users[0].name }}
-                                </a>.
-                        {% else %}
-                            ajouté le {{ invader.date.strftime('%d/%m/%Y') }} <small>(Aucun utilisateur)</small>
-                        {% endif %}
-                    </li>
-                {% endfor %}
+        <div class="card-body overflow-y-scroll">
+            <ul class="list-group" id="logs-container">
+                
             </ul>
         </div>
-        <button id="loadmore-btn" class="btn btn-outline-secondary btn-sm">Charger plus...</button>
+        <div class="card-footer d-flex justify-content-center align-items-center">
+            <nav>
+                <ul class="pagination m-0 gap-3">
+                    <li class="page-item">
+                        <button class="btn btn-sm btn-outline-primary" href="#" aria-label="Previous" id="pagination-previousBtn">
+                            <span aria-hidden="true">&lt;</span>
+                        </button>
+                    </li>
+                    <li class="page-item"> <p>/</p> </li>
+                    <li class="page-item">
+                        <button class="btn btn-sm btn-outline-primary" href="#" aria-label="Next" id="pagination-nextBtn">
+                            <span aria-hidden="true">&gt;</span>
+                        </button>
+                    </li>
+                </ul>
+            </nav>
+        </div>
     </div>
 {% endblock %}
 
 {% block scripts %}
     <script src="{{ url_for('static', filename='mapping.js') }}"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const itemsPerPage = 7;
-            let currentPage = 1;
 
-            const itemList = document.getElementById('logs-ul');
-            const loadMoreBtn = document.getElementById('loadmore-btn');
-            const items = Array.from(itemList.children);
-
-            const loadItems = page => {
-                const start = (page - 1) * itemsPerPage;
-                const end = page * itemsPerPage;
-
-                for (let i = start; i < end && i < items.length; i++) {
-                    items[i].style.display = 'list-item';
-                }
-
-                if (end >= items.length) {
-                    loadMoreBtn.style.display = 'none';
-                }
-            }
-
-            loadMoreBtn.addEventListener('click', () => {
-                currentPage++;
-                loadItems(currentPage);
-            });
-
-            // Initialize the list by hiding all items and showing the first set
-            items.forEach((item, index) => {
-                item.style.display = index < itemsPerPage ? 'list-item' : 'none';
-            });
-        });
-    </script>
+    <!-- Code for the graph -->
     <script>
         const range = (start, end, step = 1) => {
             let result = [];
@@ -135,4 +95,151 @@
             Plotly.newPlot(statsEl, data, layout, { staticPlot: true, responsive: true });
         })();
     </script>
+
+    <!-- Code for the logs. -->
+    <script>
+
+        const previousBtn = document.getElementById('pagination-previousBtn');
+        const nextBtn = document.getElementById('pagination-nextBtn');
+
+        const vaderUtils = new VaderUtilities();
+
+        const formatInvader = (lat, lng, name) => {
+            return `
+                <a href="/map?lat=${lat}&lng=${lng}" class="text-decoration-none"> 
+                    <small>${name}</small>
+                </a>
+            `
+        };
+
+        const formatAction = action => {
+            const type = action.type;
+
+            const user = action.user ? `<a href="/user/${action.user.name}" class="text-decoration-none"><small>${action.user.name}</small></a>` : `<small>${action.user_name} (supprimé)</small>`;
+
+            const oldData = action.old_data;
+            const newData = action.new_data;
+
+            const inv = action.invader;
+
+            if(type == 1) {
+                const invader = formatInvader(inv.lat, inv.lng, newData);
+                return `${invader} ajouté par ${user}.`;
+
+            } else if(type == 2) {
+                const oldInvader = `<small>${oldData}</small>`;
+                const newInvader = formatInvader(inv.lat, inv.lng, newData);
+
+                return `${oldInvader} renommé en ${newInvader} par ${user}.`;
+            } else if(type == 3) {
+                const invader = formatInvader(inv.lat, inv.lng, inv.full_id);
+                const oldStatus = vaderUtils.getFormatedState(Number(oldData));
+                const newStatus = vaderUtils.getFormatedState(Number(newData));
+
+                return `${invader} : ${oldStatus} devient ${newStatus} (d'après ${user}).`;
+            } else if(type == 4) {
+                const invader = formatInvader(inv.lat, inv.lng, inv.full_id);
+                
+                return `Nouveau commentaire sur ${invader} par ${user}.`;
+            } else if(type == 5) {
+                const latLng = newData.split(';');
+                const invader = formatInvader(latLng[0], latLng[1], inv.full_id);
+
+                return `${invader} déplacé par ${user}`;
+            }
+        };
+
+        const renderActions = actions => {
+            let logs = '';
+
+            actions.forEach(action => {
+                const date = new Date(action.date);
+                let logRecord = `
+                    <li class="list-group-item d-flex gap-3" style="list-style: none;">
+                        <small>
+                            <div class="border border-secondary rounded ps-2 pe-2" style="width: fit-content;">${date.toLocaleDateString()}</div>
+                        </small>
+                        <div class="vr"></div>
+                        <div>${formatAction(action)}</div>
+                    </li>\n
+                `;
+
+                logs += logRecord;
+            });
+
+            const logsContainer = document.getElementById('logs-container');
+            logsContainer.innerHTML = logs;
+        };
+
+        const enablePagination = () => {
+
+            const params = new URLSearchParams(window.location.search);
+            let page = params.get('page') ? Number(params.get('page')) : 1
+
+            let reloadParams = async () => {
+                const newUrl = `${window.location.pathname}?${params.toString()}`;
+                window.history.replaceState({}, '', newUrl);
+
+                return await renderNewPage();
+            };
+
+            previousBtn.onclick = async () => {
+                params.set('page', page - 1);
+                page--
+                await reloadParams();
+            };
+
+            nextBtn.onclick = async () => {
+                params.set('page', page + 1);
+                page++
+                await reloadParams();
+            };
+        };
+
+        const getActions = async (page, perPage) => {
+            return await fetch('api/get-paginated-actions?' + new URLSearchParams({
+                page: page,
+                per_page: perPage
+            }), { method: 'GET' });
+        };
+
+        const renderNewPage = async () => { 
+            const params = new URLSearchParams(window.location.search);
+            let page = params.get('page');
+            const perPage = params.get('per_page');
+
+            const res = await getActions(page, perPage);
+            const data = await res.json();
+            const actions = data.actions;
+
+            page = page == -1 ? data.max_pages : page
+            if(page == data.max_page ) {
+                params.set('page', page)
+                const newUrl = `${window.location.pathname}?${params.toString()}`;
+                window.history.replaceState({}, '', newUrl);
+            }
+
+            if(1 < page < data.max_pages) {
+                previousBtn.disabled = false;
+                nextBtn.disabled = false;
+            }
+
+            if(page <= 1) {
+                previousBtn.disabled = true;
+                nextBtn.disabled = false;
+            }
+            if(page >= data.max_pages) {
+                nextBtn.disabled = true;
+                previousBtn.disabled = false;
+            }
+            
+            renderActions(actions);
+
+            return data;
+        };
+
+        renderNewPage();
+        enablePagination();
+    </script>
+
 {% endblock %}

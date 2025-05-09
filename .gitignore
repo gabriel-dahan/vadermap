@@ -5,6 +5,7 @@ instance/
 package-lock.json
 __pycache__/
 migrations/
+.python-version
 
 # Auto replacements with cheating data
 auto_replacements.py

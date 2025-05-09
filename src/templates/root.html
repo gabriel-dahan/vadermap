@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-bs-theme="dark">
+<html lang="en" data-bs-theme="{{ 'dark' if current_user.theme == 0 else 'light' }}">
     <head>
         <meta charset="UTF-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -33,13 +33,27 @@
         {% block scripts %}
         {% endblock %}
 
-        {% if not g.patchnote_seen %}
+        {% if current_user.is_authenticated and not current_user.patchnote_seen %}
             <script src="{{ url_for('static', filename='mapping.js') }}"></script>
             <script>
                 const utils = new VaderUtilities();
 
                 const content = document.createElement('div');
+
                 content.innerHTML = `
+                    <div class="card">
+                        <div class="card-header">
+                            Nouveautés
+                        </div>
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item">Changement du fonctionnement des <a href="/stats">logs</a>. Il est désormais possible d'y voir : ajouts, renommage, déplacement, ajout de commentaire, changement de statut des invaders.</li>
+                            <li class="list-group-item">LIL_00 est désormais compté comme un vrai invader (bug de nommage).</li>
+                            <li class="list-group-item">Il est désormais possible de changer de thème (noir ou blanc) de manière permanente (bouton en bas à droite de la page).</li>
+                        </ul>
+                    </div>
+                `
+
+                /* content.innerHTML = `
                     <div class="card">
                         <div class="card-header">
                             Nouveautés
@@ -70,8 +84,10 @@
                             <li class="list-group-item">Un choix permanent du thème noir/blanc (choix disponible mais qui ne reste pour l'instant pas après un rechargement du site).</li>
                         </ul>
                     </div>
-                `
-                utils.informationModal('PatchNote v2.3.2', content, '600px')
+                ` */
+                utils.informationModal('PatchNote v2.3.2', content, '600px');
+
+                fetch('/api/update-patchnote-seen', methods = ['POST']);
             </script>
         {% endif %}
     </body>
