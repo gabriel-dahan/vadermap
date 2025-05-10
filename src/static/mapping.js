@@ -586,10 +586,49 @@ class VaderMap {
         this.initGeoLoc(fitBounds);
 
         
-        if(this.data) {
-            this.data.invaders.forEach(async invader => {
+        const loadDataOnMap = filters => {
+            this.clearClusters();
+            const filteredInvaders = this.data.invaders.filter(invader => {
+                let condition = true;
+
+                if(filters.includes('claimed')) {
+                    condition &&= this.hasInvader(this.currentUser, invader);
+                }
+                
+                if(filters.includes('unclaimed')) {
+                    condition &&= !this.hasInvader(this.currentUser, invader);
+                }
+
+                if(filters.includes('active')) {
+                    condition &&= invader.state == 0;
+                }
+                
+                if(filters.includes('inexistent')) {
+                    condition &&= invader.state == 1;
+                } 
+                
+                if(filters.includes('broken')) {
+                    condition &&= invader.state == 2;
+                } 
+                
+                if(filters.includes('damaged')) {
+                    condition &&= invader.state == 3;
+                }
+
+                if(filters.includes('favorite')) {
+                    condition &&= this.isFavorite(this.currentUser, invader);
+                }
+
+                return condition;
+            });
+
+            filteredInvaders.forEach(async invader => {
                 await this.addInvaderMarker(invader.lat, invader.lng);
             });
+        }
+
+        if(this.data) {
+            loadDataOnMap([]);
 
             /* 
             --------- USE THE CODE BELLOW IF YOU HAVE REPLACEMENT DATA --------- 
@@ -704,6 +743,17 @@ class VaderMap {
         this.map.on('click', mapClick);
         this.map.on('mousemove', updateLatLngText);
         this.map.on('popupopen', loadInvaderImage);
+
+        // DATA FROM BOOTSTRAP-SELECT 'filters' ON MAP PAGE
+
+        this.filters = [];
+
+        const selectFilters = $('#select-filters')
+        selectFilters.on('changed.bs.select', e => {
+            this.filters = selectFilters.val(); // list of active filters.
+
+            loadDataOnMap(this.filters);
+        });
     }
 
     initClusters() {

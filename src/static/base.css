@@ -67,7 +67,3 @@
 .border-purple {
 	border-color: var(--purple) !important;
 }
-
-h1, h2, h3 {
-    font-family: flashInvaders !important;
-}
