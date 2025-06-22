@@ -497,6 +497,9 @@ class VaderMap {
 
         this.geoLoc = false;
 
+        this.centerToScreenBtn = document.getElementById('center-to-pos');
+        this.centerToScreenBtnContainer = document.getElementById('center-to-pos-container');
+
         const IMG_PATH = 'img/';
         this.icons = {
             pointer: IMG_PATH + 'pointer.svg',
@@ -585,50 +588,59 @@ class VaderMap {
         this.initClusters();
         this.initGeoLoc(fitBounds);
 
-        
-        const loadDataOnMap = filters => {
+         
+        const loadDataOnMap = f => { // f for 'filters' (list of filters)
+
+            // Filters
+            const claimFilters = ['claimed', 'unclaimed'];
+            const stateFilters = ['active', 'inexistent', 'damaged', 'broken'];
+
+            const noClaimFilter = !claimFilters.some(filter => f.includes(filter));
+            const noStateFilter = !stateFilters.some(filter => f.includes(filter));
+            const noFavoriteFilter = !f.includes('favorite');
+
             this.clearClusters();
+
             const filteredInvaders = this.data.invaders.filter(invader => {
-                let condition = true;
+                const hasInv = this.hasInvader(this.currentUser, invader);
 
-                if(filters.includes('claimed')) {
-                    condition &&= this.hasInvader(this.currentUser, invader);
-                }
-                
-                if(filters.includes('unclaimed')) {
-                    condition &&= !this.hasInvader(this.currentUser, invader);
-                }
-
-                if(filters.includes('active')) {
-                    condition &&= invader.state == 0;
-                }
-                
-                if(filters.includes('inexistent')) {
-                    condition &&= invader.state == 1;
-                } 
-                
-                if(filters.includes('broken')) {
-                    condition &&= invader.state == 2;
-                } 
-                
-                if(filters.includes('damaged')) {
-                    condition &&= invader.state == 3;
+                let claimCondition = false;
+                if(hasInv) {
+                    claimCondition = f.includes('claimed') || noClaimFilter;
+                } else {
+                    claimCondition = f.includes('unclaimed') || noClaimFilter;
                 }
 
-                if(filters.includes('favorite')) {
-                    condition &&= this.isFavorite(this.currentUser, invader);
+                let stateCondition = false;
+                if(invader.state == 0) {
+                    stateCondition = f.includes('active') || noStateFilter
+                } else if(invader.state == 1) {
+                    stateCondition = f.includes('inexistent') || noStateFilter
+                } else if(invader.state == 2) {
+                    stateCondition = f.includes('broken') || noStateFilter
+                } else if(invader.state == 3) {
+                    stateCondition = f.includes('damaged') || noStateFilter
                 }
 
-                return condition;
+                let favoriteCondition = false;
+                if(this.isFavorite(this.currentUser, invader)) {
+                    favoriteCondition = f.includes('favorite');
+                } else {
+                    favoriteCondition = noFavoriteFilter;
+                }
+
+                return claimCondition && stateCondition && favoriteCondition;
             });
 
             filteredInvaders.forEach(async invader => {
                 await this.addInvaderMarker(invader.lat, invader.lng);
             });
+
+            return filteredInvaders.length;
         }
 
         if(this.data) {
-            loadDataOnMap([]);
+            let count = loadDataOnMap([]);
 
             /* 
             --------- USE THE CODE BELLOW IF YOU HAVE REPLACEMENT DATA --------- 
@@ -800,6 +812,18 @@ class VaderMap {
         const geolocDenied = (err) => {
             this.geoLoc = false;
 
+            this.centerToScreenBtn.disabled = true;
+            // data-bs-container="body" data-bs-toggle="popover" data-bs-placement="left" data-bs-content="Left popover"
+            this.centerToScreenBtnContainer.setAttribute('data-bs-container', 'body');
+            this.centerToScreenBtnContainer.setAttribute('data-bs-toggle', 'popover');
+            this.centerToScreenBtnContainer.setAttribute('data-bs-placement', 'auto');
+            this.centerToScreenBtnContainer.setAttribute('data-bs-content', 'Localisation impossible.');
+
+            const popoverTriggerList = document.querySelectorAll('[data-bs-toggle="popover"]');
+            const popoverList = [...popoverTriggerList].map(popoverTriggerEl => { 
+                new bootstrap.Popover(popoverTriggerEl) ;
+            });
+
             if (err.code === 1) {
                 console.error('Géolocalisation non acceptée.');
             } else {
@@ -809,6 +833,12 @@ class VaderMap {
 
         navigator.geolocation.watchPosition((pos) => {
             this.geoLoc = true;
+
+            this.centerToScreenBtn.disabled = false;
+            this.centerToScreenBtnContainer.removeAttribute('data-bs-container');
+            this.centerToScreenBtnContainer.removeAttribute('data-bs-toggle');
+            this.centerToScreenBtnContainer.removeAttribute('data-bs-placement');
+            this.centerToScreenBtnContainer.removeAttribute('data-bs-content');
 
             const lat = pos.coords.latitude;
             const lng = pos.coords.longitude;
@@ -1087,6 +1117,15 @@ class VaderMap {
                         <ul class="list-group list-group-flush">
                             <li class="list-group-item">${invaderDate.toLocaleString()}</li>
                             <li class="list-group-item">${this.utils.getFormatedDeltaTime(invaderDate.toISOString())}</li>
+                            <li class="list-group-item d-flex gap-3 align-items-center">
+                                <textarea name="invader-coordinates" class="form-control">${invader.lat},${invader.lng}</textarea>
+
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-clipboard" viewBox="0 0 16 16" style="cursor: pointer;" for="invader-coordinates">
+                                    <path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1z"/>
+                                    <path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0z"/>
+                                </svg>
+                                </small>
+                            </li>
                         </ul>
                     </div>
                     <div class="card">
@@ -1182,6 +1221,19 @@ class VaderMap {
         const invaderImageElement = document.getElementById('invader-image-modal');
         const invaderImage = await this.getInvaderImage(invader) || this.icons.inexistentInvader;
         invaderImageElement.src = invaderImage;
+
+        const copyCoordinatesBtn = content.querySelector('[for="invader-coordinates"]');
+        copyCoordinatesBtn.onclick = () => {
+            const coordinates = content.querySelector('[name="invader-coordinates"]');
+            coordinates.focus();
+            coordinates.select();
+
+            try {
+                let success = document.execCommand('copy');
+            } catch(err) {
+                console.error(err);
+            }
+        }
     }
 
     validInvaderName(rawCity, rawInvId) {

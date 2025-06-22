@@ -29,7 +29,7 @@
             <input type="text" class="form-control" id="invader-search">
         </div>
 
-        <div class="card card-body overflow-scroll" style="max-height: 400px;">
+        <div class="card card-body overflow-scroll" style="max-height: 400px; min-height: 200px; min-width: 100%;">
             <div class="invaders row">
                 {% for invader in sort_with_none(
                     iterable = invaders, 

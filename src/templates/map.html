@@ -17,33 +17,35 @@
 
 {% block body %}
     <div id="map"></div>
-    <div class="space-invaders">
+
+    <div class="space-invaders position-fixed fixed-top center-pos bg-dark p-3 border m-3 w-auto d-flex align-items-center gap-1" style="border-radius: 30px; font-size: smaller;">
         <span class="title">
             <h1><a href="{{ url_for('home') }}">VaderMap</a></h1>
             <img src="{{ url_for('static', filename='img/invader-logo-white.png') }}" alt="Invader Logo">
         </span>
-        <p>Connecté en tant que <strong><a href="{{ url_for('my_profile') }}">{{ current_user.name }}</a></strong> ({{ current_user.invaders|length }}/{{ invaders|length }})</p>
+
+        <small class="conn-text m-0">Connecté en tant que <strong><a href="{{ url_for('my_profile') }}">{{ current_user.name }}</a></strong> <span id="invaders-count">({{ current_user.invaders|length }}/{{ invaders|length }})</span></small>
     </div>
 
-    <div class="position-fixed fixed-bottom center-pos bg-light-subtle p-3 border rounded m-3 d-flex align-items-center gap-3" style="z-index: 501;">
+    <div class="position-fixed fixed-bottom center-pos bg-dark p-3 border m-3 d-flex align-items-center gap-3" style="z-index: 501; border-radius: 30px;">
         <div class="input-group d-flex flex-column gap-2 flex-grow-1">
             <select name="filters" id="select-filters" class="selectpicker mw-100" multiple placeholder="Filtres">
                 <optgroup label="claim">
                     <option value="claimed">Marqués</option>
-                    <option value="unclaimed">Non marqué</option>
+                    <option value="unclaimed">Non marqués</option>
                 </optgroup>
                 <optgroup label="state">
                     <option value="active">Bon état</option>
                     <option value="damaged">Abîmés</option>
                     <option value="broken">Détruits</option>
-                    <option value="inexistent">Introuvales</option>
+                    <option value="inexistent">Introuvables</option>
                 </optgroup>
                 <option value="favorite">Favoris</option>
             </select>
         </div>
         <div class="vr"></div>
-        <div>
-            <button id="center-to-pos" class="btn btn-primary btn-sm">
+        <div id="center-to-pos-container">
+            <button id="center-to-pos" class="btn btn-primary btn-sm" style="border-radius: 15px;">
                 <span>Centrer</span>
             </button>
         </div>
@@ -58,6 +60,12 @@
         .bootstrap-select .dropdown-toggle {
             width: 100% !important;
             white-space: normal;
+            border-radius: 15px;
+        }
+
+        .bootstrap-select .dropdown-menu {
+            border-radius: 15px;
+            margin-bottom: 20px !important;
         }
 
         .bootstrap-select .filter-option-inner-inner {
