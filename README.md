@@ -1,10 +1,8 @@
-**EDIT fin août 2024 : Après plus de deux mois sans aucune modification, le développement reprend plus ou moins activement, toutes les fonctionnalités vouées à être ajoutées dans la v2.3 (et v2.4 dans un futur un peu lointain) sont spécifiées dans [TODO.md](./TODO.md).**
+**EDIT 20/11/2025 : Par manque d'activité sur la version du site hébergée par moi-même, j'ai décidé de l'arrêter. Le développement continuera sûrement si des issues sont créées, et le code n'est pas encore déprécié.**
 
 # VaderMap
 
-Voici le code source d'un [site](https://vadermap.gabrieldahan.me/) que j'ai développé à destination d'un comité restreint, constitué d'une carte du monde, modifiée pour favoriser l'entraide de groupe autour de la recherche des [Space Invaders](https://www.space-invaders.com/world/) dans le monde entier. 
-
-Cette carte n'est pas publiquement accessible pour la simple et bonne raison qu'elle ne doit pas promouvoir la triche quant à la recherche des space-invaders. Il vous est cependant possible, sous licence, d'héberger par vous même le dit site à partir de son code source, et de l'utiliser comme bon vous semble.
+Voici le code source d'un site que j'ai développé à destination d'un comité restreint, constitué d'une carte du monde, modifiée pour favoriser l'entraide de groupe autour de la recherche des [Space Invaders](https://www.space-invaders.com/world/) dans le monde entier.
 
 Voici à quoi ressemble le site lorqu'il est mis en ligne, accessible par l'administrateur et les invités :
 
@@ -26,7 +24,8 @@ VERSION=V2.3.2
 
 ### Premier lancement
 
-Au premier lancement, la base de donnée __n'est pas initialisée__ ! Pour l'initialiser, il faut executer les instructions suivantes dans un terminal situé à la racine du projet :
+Au premier lancement, la base de donnée **n'est pas initialisée** ! Pour l'initialiser, il faut executer les instructions suivantes dans un terminal situé à la racine du projet :
+
 ```python
 $ python # Ou python3
 >>> from src import __app__, db
@@ -37,7 +36,8 @@ $ python # Ou python3
 
 ### Fichier `chpriv.py` et privilèges invités
 
-Lorsque le site est fonctionnel, il est alors possible d'inviter de nouveaux utilisateurs à créer leur compte (en leur fournissant la `MASTER_KEY` écrite dans `.env`). Par défaut, un utilisateur n'a pas la permission de supprimer les *invaders* des autres, si vous voulez la lui donner, vous pouvez executer l'instruction suivante dans un terminal :
+Lorsque le site est fonctionnel, il est alors possible d'inviter de nouveaux utilisateurs à créer leur compte (en leur fournissant la `MASTER_KEY` écrite dans `.env`). Par défaut, un utilisateur n'a pas la permission de supprimer les _invaders_ des autres, si vous voulez la lui donner, vous pouvez executer l'instruction suivante dans un terminal :
+
 ```bash
 $ chpriv.py --privilege=1 --user=username
 ```
