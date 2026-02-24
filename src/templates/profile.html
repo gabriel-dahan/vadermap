@@ -95,6 +95,12 @@
                             <ul class="dropdown-menu dropdown-menu-dark text-small" aria-labelledby="dropdown-{{ invader.city }}{{ invader.inv_id }}">
                                 <li><a class="dropdown-item mark-invader" data-lat="{{ invader.lat }}" data-lng="{{ invader.lng }}" data-inv="{{ invader.city }}{{ invader.inv_id }}">Marquer</a></li>
                                 <li><hr class="dropdown-divider"></li>
+                                <li><h6 class="dropdown-header">Modifier l'état</h6></li>
+                                <li><a class="dropdown-item change-state" data-lat="{{ invader.lat }}" data-lng="{{ invader.lng }}" data-state="0" href="#">Existant</a></li>
+                                <li><a class="dropdown-item change-state" data-lat="{{ invader.lat }}" data-lng="{{ invader.lng }}" data-state="3" href="#">Abîmé</a></li>
+                                <li><a class="dropdown-item change-state" data-lat="{{ invader.lat }}" data-lng="{{ invader.lng }}" data-state="2" href="#">Détruit</a></li>
+                                <li><a class="dropdown-item change-state" data-lat="{{ invader.lat }}" data-lng="{{ invader.lng }}" data-state="1" href="#">Introuvable</a></li>
+                                <li><hr class="dropdown-divider"></li>
                                 <li><a class="dropdown-item" href="{{ url_for('map', lat=invader.lat, lng=invader.lng) }}">Voir sur la carte</a></li>
                             </ul>
                         </div>
@@ -169,6 +175,18 @@
                         dropdown.classList.remove('btn-primary');
                         dropdown.classList.add('btn-light');
                     }
+                }
+            });
+
+            const changeStateBtns = document.querySelectorAll('.change-state');
+            changeStateBtns.forEach(btn => {
+                btn.onclick = async (e) => {
+                    e.preventDefault();
+                    const lat = btn.getAttribute('data-lat');
+                    const lng = btn.getAttribute('data-lng');
+                    const state = btn.getAttribute('data-state');
+                    await vaderAPI.changeState(lat, lng, state);
+                    window.location.reload();
                 }
             });
         };
