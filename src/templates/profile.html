@@ -46,7 +46,7 @@
                         {% endif %}
 
                         <div class="dropdown">
-                            <button data-bs-toggle="dropdown" id="dropdown-{{ invader.city }}{{ invader.inv_id }}" class="{{ cell_style }} ratio ratio-1x1 border rounded dropdown-toggle show" style="width: 64px; height: 64px;" aria-exapanded="false">
+                            <button data-bs-toggle="dropdown" id="dropdown-{{ invader.city }}{{ invader.inv_id }}" class="{{ cell_style }} ratio ratio-1x1 border rounded dropdown-toggle show position-relative" style="width: 64px; height: 64px;" aria-expanded="false">
                                 <small class="d-flex align-items-center justify-content-center" style="font-size: 13px;">
                                     {% if invader.inv_id %}
                                         {{ invader.city }}_{{ invader.inv_id }}
@@ -54,6 +54,43 @@
                                         NN
                                     {% endif %}
                                 </small>
+                                {% if marked %}
+                                    {% if invader.state == 1 %}
+                                        <span class="position-absolute p-1" style="font-size: 12px; line-height: 1;">
+                                            <img src="/img/invader-logo-white-inexistent.png" alt="Broken" width="20" height="20">
+                                        </span>
+                                    {% elif invader.state == 2 %}
+                                        <span class="position-absolute p-1" style="font-size: 12px; line-height: 1;">
+                                            <img src="/img/invader-logo-white-broken.png" alt="Broken" width="20" height="20">
+                                        </span>
+                                    {% elif invader.state == 3 %}
+                                        <span class="position-absolute p-1" style="font-size: 12px; line-height: 1;">
+                                            <img src="/img/invader-logo-white-damaged.png" alt="Broken" width="20" height="20">
+                                        </span>
+                                    {% else %}
+                                        <span class="position-absolute p-1" style="font-size: 12px; line-height: 1;">
+                                            <img src="/img/invader-logo-white.png" alt="Broken" width="20" height="20">
+                                        </span> 
+                                    {% endif %}
+                                {% else %}
+                                    {% if invader.state == 1 %}
+                                        <span class="position-absolute p-1" style="font-size: 12px; line-height: 1;">
+                                            <img src="/img/invader-logo-inexistent.png" alt="Broken" width="20" height="20">
+                                        </span>
+                                    {% elif invader.state == 2 %}
+                                        <span class="position-absolute p-1" style="font-size: 12px; line-height: 1;">
+                                            <img src="/img/invader-logo-broken.png" alt="Broken" width="20" height="20">
+                                        </span>
+                                    {% elif invader.state == 3 %}
+                                        <span class="position-absolute p-1" style="font-size: 12px; line-height: 1;">
+                                            <img src="/img/invader-logo-damaged.png" alt="Broken" width="20" height="20">
+                                        </span>
+                                    {% else %}
+                                        <span class="position-absolute p-1" style="font-size: 12px; line-height: 1;">
+                                            <img src="/img/invader-logo.png" alt="Broken" width="20" height="20">
+                                        </span> 
+                                    {% endif %}
+                                {% endif %}
                             </button>
                             <ul class="dropdown-menu dropdown-menu-dark text-small" aria-labelledby="dropdown-{{ invader.city }}{{ invader.inv_id }}">
                                 <li><a class="dropdown-item mark-invader" data-lat="{{ invader.lat }}" data-lng="{{ invader.lng }}" data-inv="{{ invader.city }}{{ invader.inv_id }}">Marquer</a></li>

@@ -1,9 +1,5 @@
 <!DOCTYPE html>
-{% if current_user.is_authenticated %}
 <html lang="en" data-bs-theme="{{ 'dark' if current_user.theme == 0 else 'light' }}">
-{% else %}
-<html lang="en" data-bs-theme="dark"></html>
-{% endif %}
     <head>
         <meta charset="UTF-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">

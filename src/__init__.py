@@ -1,8 +1,9 @@
-from flask import Flask, Blueprint, render_template, request, jsonify, redirect, url_for, send_from_directory, send_file
+from flask import Flask, Blueprint, render_template, request, jsonify, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import desc
 from flask_login import LoginManager, current_user, login_user, login_required, logout_user
 from flask_migrate import Migrate
+# from flask_socketio import SocketIO, emit
 
 import os
 from functools import wraps
@@ -23,6 +24,7 @@ __app__ = Flask(
 __app__.config['SECRET_KEY'] = CONF['SECRET']
 
 __app__.url_map.strict_slashes = False
+
 
 # DATABASE
 __app__.config['SQLALCHEMY_DATABASE_URI'] = CONF['DB_URI']
@@ -53,10 +55,6 @@ def inject_globals():
         version = ver
     )
 
-@__app__.route('/fonts/<path:filename>')
-def serve_font(filename):
-    return send_from_directory('static', f'fonts/{filename}', mimetype='font/ttf')
-
 @__app__.route('/reset-patchnote-message') # DEBUGGING PURPOSES
 def reset_patchnote_message():
     current_user.patchnote_seen = False
@@ -81,19 +79,17 @@ def my_profile():
 def user_profile(username: str):
     user: User = User.query.filter_by(name = username).first()
 
-    if user:
-        cities = scraper.get_cities()
-        user_invaders_by_city = []
-        for city in cities:
-            invaders_by_city = Invader.query.filter_by(city = city)
-            invaders_by_city_and_user = invaders_by_city.filter(Invader.users.any(id = user.id))
+    cities = scraper.get_cities()
+    user_invaders_by_city = []
+    for city in cities:
+        invaders_by_city = Invader.query.filter_by(city = city)
+        invaders_by_city_and_user = invaders_by_city.filter(Invader.users.any(id = user.id))
 
-            user_invaders_by_city.append(
-                (city, invaders_by_city_and_user.count(), invaders_by_city.count())
-            )
+        user_invaders_by_city.append(
+            (city, invaders_by_city_and_user.count(), invaders_by_city.count())
+        )
 
-        return render_template('profile.html', user = user, invaders = Invader.query.all(), sort_with_none = sort_with_none, user_invaders_by_city = user_invaders_by_city)
-    return render_template('error/404.html')
+    return render_template('profile.html', user = user, invaders = Invader.query.all(), sort_with_none = sort_with_none, user_invaders_by_city = user_invaders_by_city)
 
 from .forms import LoginForm, RegistrationForm, EditProfileForm
 
@@ -155,41 +151,6 @@ def logout():
 @login_required
 def stats():
     return render_template('stats.html')
-
-# --- CSV GENERATION --- #
-import csv
-from io import StringIO, BytesIO
-
-@__app__.route('/missing-invaders-csv')
-@login_required
-def generate_csv():
-
-    csv_buffer = StringIO()
-    csv_writer = csv.writer(csv_buffer)
-
-    csv_writer.writerow(['City', 'Invader', 'Status', 'Located'])
-
-    cities = scraper.get_cities()
-    for city_code in cities:
-        for i in range(1, cities[city_code]['invaders'] + 1):
-            invader = Invader.query.filter_by(city = city_code, id = i).first()
-            csv_writer.writerow([
-                cities[city_code]['name'],
-                i,
-                match_state(invader.state) if invader else 'Unknown',
-                True if invader else False
-            ])
-
-    byte_io = BytesIO()
-    byte_io.write(csv_buffer.getvalue().encode('utf-8'))
-    byte_io.seek(0)
-
-    return send_file(
-        byte_io,
-        mimetype='text/csv',
-        as_attachment=True,
-        download_name='invaders.csv'
-    )
 
 # --- API --- #
 
@@ -415,7 +376,7 @@ def get_cities():
 
 __app__.register_blueprint(api, url_prefix = '/api')
 
-from .models import Invader, User, Action, match_state
+from .models import Invader, User, Action, action_as_text
 
 # --- ADMIN PAGE --- #
 

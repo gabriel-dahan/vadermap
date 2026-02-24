@@ -19,7 +19,7 @@ def match_state(state: Literal[0, 1, 2]) -> str:
         case 3:
             return 'Damaged'
         case _:
-            return 'Unknown'
+            return 'Existent'
 
 class Invader(db.Model):
     __tablename__ = 'invaders'
@@ -72,7 +72,6 @@ class User(db.Model, UserMixin):
     privileges: int = db.Column(db.Integer, server_default = '0')
     theme: int = db.Column(db.Integer, server_default = '0') # 0 -> dark ; 1 -> light
     patchnote_seen: bool = db.Column(db.Boolean, server_default = db.text('false'))
-    is_online: bool = db.Column(db.Boolean, server_default = db.text('false'))
 
     # ACTIONS
     actions = db.relationship('Action', backref = 'user', lazy = True) # One-to-Many

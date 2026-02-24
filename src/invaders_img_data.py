@@ -6,14 +6,6 @@ import time
 import math
 import requests
 
-"""
-Awaz-inv API endpoints :
-    - www.awazleon.space/cities/<city_prefix>/info : informations about a specific city (pa, ny, etc.)
-    - www.awazleon.space/cities/info : informations about every invaded city
-    - www.awazleon.space/invaders/<invader_id>/info : informations about a specific space invader
-    - www.awazleon.space/invaders/<city_prefix>/city : informations about the invaders of a specific city
-"""
-
 class ImagesScraper(object):
 
     def __init__(self) -> None:
@@ -37,7 +29,7 @@ class ImagesScraper(object):
         max_digit = max_digit + 1 if max_digit == 1 else max_digit
         return self.img_base_url.format(city_code, city_code, f'{number:0{max_digit}d}')
 
-    def get_cities(self) -> dict[str, dict[str, int]]:
+    def get_cities(self) -> dict[str, str]:
         links: list[el.Tag] = self.soup.find_all('a', href = True)
         cities = {}
 
